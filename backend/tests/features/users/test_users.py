@@ -3,6 +3,7 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
+from unittest.mock import AsyncMock, patch
 
 from src.features.users.models import AdminUser
 
@@ -27,14 +28,16 @@ async def test_list_admins_owner_success(owner_client: AsyncClient, db_session):
 
 @pytest.mark.asyncio
 async def test_invite_admin(owner_client: AsyncClient, db_session):
-    resp = await owner_client.post("/api/v1/users/invite", json={
-        "email": "new.op@vantier.com",
-        "role": "operative"
-    })
-    assert resp.status_code == 201
-    data = resp.json()
-    assert data["email"] == "new.op@vantier.com"
-    assert data["role"] == "operative"
+    with patch("src.integrations.resend_client.send_admin_invite", new_callable=AsyncMock) as mock_invite:
+        resp = await owner_client.post("/api/v1/users/invite", json={
+            "email": "new.op@vantier.com",
+            "role": "operative"
+        })
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data["email"] == "new.op@vantier.com"
+        assert data["role"] == "operative"
+        mock_invite.assert_called_once()
     
     # Check DB
     row = (await db_session.execute(select(AdminUser).where(AdminUser.email == "new.op@vantier.com"))).scalar_one()

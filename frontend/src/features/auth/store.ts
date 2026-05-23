@@ -68,13 +68,29 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Register a new account with email + password via Neon Auth.
    */
-  async function register(email: string, password: string): Promise<void> {
+  async function register(email: string, password: string): Promise<string | null> {
     const { data, error } = await authClient.signUp.email({ email, password, name: email.split('@')[0] })
     if (error) throw new Error(error.message)
     const token = data?.token
-    if (!token) throw new Error('Sign-up succeeded but no access token returned')
-    localStorage.setItem(TOKEN_KEY, token)
-    await fetchRole()
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token)
+      await fetchRole()
+    }
+    return token || null
+  }
+
+  /**
+   * Verify email OTP via Neon Auth.
+   */
+  async function verifyEmailOtp(email: string, code: string): Promise<string | null> {
+    const { data, error } = await authClient.emailOtp.verifyEmail({ email, otp: code })
+    if (error) throw new Error(error.message)
+    const token = data?.token
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token)
+      await fetchRole()
+    }
+    return token || null
   }
 
 
@@ -96,5 +112,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(ROLE_KEY)
   }
 
-  return { role, isAuthenticated, isAdmin, login, register, logout, syncFromNeonAuth, clearAuth, fetchRole }
+  return { role, isAuthenticated, isAdmin, login, register, verifyEmailOtp, logout, syncFromNeonAuth, clearAuth, fetchRole }
 })

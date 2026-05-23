@@ -7,9 +7,11 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.config import get_settings
 from src.core.exceptions import AppException, ConflictException, ForbiddenException, NotFoundException
 from src.features.users.models import AdminUser
 from src.features.users.schemas import AdminRoleUpdate, AdminUserInvite, SelfRegisterRequest
+from src.integrations import resend_client
 
 
 async def list_admins(db: AsyncSession) -> list[AdminUser]:
@@ -21,10 +23,9 @@ async def list_admins(db: AsyncSession) -> list[AdminUser]:
 
 
 async def invite_admin(db: AsyncSession, data: AdminUserInvite) -> AdminUser:
-    """Create a new admin user invite (requires pre-registration in Neon Auth).
+    """Create a new admin user invite, provisioning the DB row and sending an invite email.
     
-    In a real system, this might send an invite email. Here, we just provision
-    the DB row, expecting the user to log in via Neon Auth with matching email.
+    The user is expected to register via Neon Auth using the link sent to their email.
     """
     existing = await db.execute(
         select(AdminUser).where(func.lower(AdminUser.email) == data.email.lower())
@@ -33,9 +34,6 @@ async def invite_admin(db: AsyncSession, data: AdminUserInvite) -> AdminUser:
         raise ConflictException(f"Admin with email '{data.email}' already exists.")
     
     # Placeholder identity. True linkage happens when Neon Auth returns matching email payload
-    # For now, we seed neon_auth_user_id with a placeholder that gets updated on first login,
-    # or you require the operario to register FIRST and you enter their exact string ID here.
-    # To keep Auth flow simple per PRD, we just use a temporary ID here.
     obj = AdminUser(
         neon_auth_user_id=f"pending_{uuid.uuid4()}",
         email=data.email,
@@ -44,6 +42,12 @@ async def invite_admin(db: AsyncSession, data: AdminUserInvite) -> AdminUser:
     db.add(obj)
     await db.flush()
     await db.refresh(obj)
+
+    # Send invitation email via Resend
+    settings = get_settings()
+    invite_link = f"{settings.frontend_url}/auth/login?register=true&email={data.email}"
+    await resend_client.send_admin_invite(data.email, data.role, invite_link)
+
     return obj
 
 

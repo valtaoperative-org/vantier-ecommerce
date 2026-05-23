@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../store'
 
@@ -8,17 +8,42 @@ const route = useRoute()
 const auth = useAuthStore()
 
 const isRegister = ref(false)
+const isVerifying = ref(false)
 const email = ref('')
 const password = ref('')
+const otpCode = ref('')
 const error = ref<string | null>(null)
 const loading = ref(false)
+
+onMounted(() => {
+  if (route.query.email) {
+    email.value = route.query.email as string
+  }
+  if (route.query.register === 'true') {
+    isRegister.value = true
+  }
+})
 
 async function submit() {
   error.value = null
   loading.value = true
   try {
+    if (isVerifying.value) {
+      await auth.verifyEmailOtp(email.value, otpCode.value.trim())
+      // Verification succeeded. Log in automatically with the credentials typed.
+      await auth.login(email.value, password.value)
+      const redirect = (route.query.redirect as string) ?? (auth.isAdmin ? '/admin/dashboard' : '/')
+      await router.push(redirect)
+      return
+    }
+
     if (isRegister.value) {
-      await auth.register(email.value, password.value)
+      const token = await auth.register(email.value, password.value)
+      if (!token) {
+        // Token is null, meaning Verify at Sign-up is enabled and OTP was sent.
+        isVerifying.value = true
+        return
+      }
     } else {
       await auth.login(email.value, password.value)
     }
@@ -40,57 +65,78 @@ async function submit() {
         class="text-[1.6rem] font-bold tracking-tight"
         style="color: var(--color-obsidian);"
       >
-        {{ isRegister ? 'Crear cuenta' : 'Iniciar sesión' }}
+        {{ isVerifying ? 'Verificar correo' : (isRegister ? 'Crear cuenta' : 'Iniciar sesión') }}
       </h1>
       <p
         class="text-[0.82rem]"
         style="color: rgba(0,0,0,0.4);"
       >
-        {{ isRegister ? 'Registra tus datos para acceder.' : 'Ingresa tus credenciales para acceder al panel.' }}
+        {{ isVerifying ? 'Ingresa el código enviado a ' + email + '.' : (isRegister ? 'Registra tus datos para acceder.' : 'Ingresa tus credenciales para acceder al panel.') }}
       </p>
     </div>
 
     <!-- Form -->
     <form class="space-y-5" @submit.prevent="submit">
-      <div class="space-y-1.5">
+      <div v-if="isVerifying" class="space-y-1.5">
         <label
           class="block text-[0.68rem] font-semibold uppercase tracking-wider"
           style="color: var(--color-obsidian);"
         >
-          Correo electrónico
+          Código de verificación
         </label>
         <input
-          v-model="email"
-          type="email"
+          v-model="otpCode"
+          type="text"
           required
-          autocomplete="email"
-          placeholder="admin@vantierluxuryla.com"
-          class="w-full px-4 py-3 rounded-xl border text-[0.88rem] outline-none transition-all"
+          placeholder="123456"
+          class="w-full px-4 py-3 rounded-xl border text-[0.88rem] outline-none transition-all text-center tracking-widest font-mono text-[1.2rem]"
           style="border-color: rgba(0,0,0,0.12); background: #fff; color: var(--color-obsidian);"
-          :style="{ boxShadow: 'none' }"
           @focus="($event.target as HTMLInputElement).style.borderColor = 'var(--color-obsidian)'"
           @blur="($event.target as HTMLInputElement).style.borderColor = 'rgba(0,0,0,0.12)'"
         />
       </div>
 
-      <div class="space-y-1.5">
-        <label
-          class="block text-[0.68rem] font-semibold uppercase tracking-wider"
-          style="color: var(--color-obsidian);"
-        >
-          Contraseña
-        </label>
-        <input
-          v-model="password"
-          type="password"
-          required
-          autocomplete="current-password"
-          placeholder="••••••••"
-          class="w-full px-4 py-3 rounded-xl border text-[0.88rem] outline-none transition-all"
-          style="border-color: rgba(0,0,0,0.12); background: #fff; color: var(--color-obsidian);"
-          @focus="($event.target as HTMLInputElement).style.borderColor = 'var(--color-obsidian)'"
-          @blur="($event.target as HTMLInputElement).style.borderColor = 'rgba(0,0,0,0.12)'"
-        />
+      <div v-else class="space-y-5">
+        <div class="space-y-1.5">
+          <label
+            class="block text-[0.68rem] font-semibold uppercase tracking-wider"
+            style="color: var(--color-obsidian);"
+          >
+            Correo electrónico
+          </label>
+          <input
+            v-model="email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="admin@vantierluxuryla.com"
+            class="w-full px-4 py-3 rounded-xl border text-[0.88rem] outline-none transition-all"
+            style="border-color: rgba(0,0,0,0.12); background: #fff; color: var(--color-obsidian);"
+            :style="{ boxShadow: 'none' }"
+            @focus="($event.target as HTMLInputElement).style.borderColor = 'var(--color-obsidian)'"
+            @blur="($event.target as HTMLInputElement).style.borderColor = 'rgba(0,0,0,0.12)'"
+          />
+        </div>
+
+        <div class="space-y-1.5">
+          <label
+            class="block text-[0.68rem] font-semibold uppercase tracking-wider"
+            style="color: var(--color-obsidian);"
+          >
+            Contraseña
+          </label>
+          <input
+            v-model="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            placeholder="••••••••"
+            class="w-full px-4 py-3 rounded-xl border text-[0.88rem] outline-none transition-all"
+            style="border-color: rgba(0,0,0,0.12); background: #fff; color: var(--color-obsidian);"
+            @focus="($event.target as HTMLInputElement).style.borderColor = 'var(--color-obsidian)'"
+            @blur="($event.target as HTMLInputElement).style.borderColor = 'rgba(0,0,0,0.12)'"
+          />
+        </div>
       </div>
 
       <p v-if="error" class="text-[0.78rem] text-red-500 flex items-center gap-1.5">
@@ -108,15 +154,25 @@ async function submit() {
       >
         <span v-if="loading" class="inline-flex items-center gap-2">
           <span class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          {{ isRegister ? 'Registrando...' : 'Ingresando...' }}
+          {{ isVerifying ? 'Verificando...' : (isRegister ? 'Registrando...' : 'Ingresando...') }}
         </span>
-        <span v-else>{{ isRegister ? 'Crear cuenta' : 'Ingresar' }}</span>
+        <span v-else>{{ isVerifying ? 'Confirmar código' : (isRegister ? 'Crear cuenta' : 'Ingresar') }}</span>
       </button>
 
       <div class="text-center mt-4">
         <button
+          v-if="isVerifying"
           type="button"
-          @click="isRegister = !isRegister"
+          @click="isVerifying = false; error = null;"
+          class="text-[0.8rem] hover:underline"
+          style="color: rgba(0,0,0,0.6);"
+        >
+          Atrás / Cancelar verificación
+        </button>
+        <button
+          v-else
+          type="button"
+          @click="isRegister = !isRegister; error = null;"
           class="text-[0.8rem] hover:underline"
           style="color: rgba(0,0,0,0.6);"
         >

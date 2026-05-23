@@ -350,3 +350,32 @@ async def send_contact_form(sender_name: str, sender_email: str, message: str) -
         "subject": f"Contact: {sender_name}",
         "text": f"Name: {sender_name}\nEmail: {sender_email}\n\n{message}",
     })
+
+
+async def send_admin_invite(email: str, role: str, invite_link: str) -> None:
+    settings = get_settings()
+    body = f"""
+      <p style="margin:0 0 4px;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#999;">Invitación de Administrador</p>
+      <h1 style="margin:0 0 24px;font-size:26px;font-weight:700;color:#0f0f0f;letter-spacing:1px;">Únete al panel de Vantier</h1>
+      <p style="margin:0 0 20px;font-size:14px;color:#555;line-height:1.6;">
+        Has sido invitado a unirte a la plataforma de e-commerce de Vantier como administrador con el rol de <strong>{role}</strong>.
+      </p>
+      <div style="text-align:center;margin:30px 0;">
+        <a href="{invite_link}" style="background:#0f0f0f;color:#ffffff;padding:12px 30px;text-decoration:none;font-weight:bold;font-size:11px;letter-spacing:2px;text-transform:uppercase;display:inline-block;border-radius:4px;">
+          Aceptar Invitación y Crear Cuenta
+        </a>
+      </div>
+      <p style="margin:20px 0 0;font-size:13px;color:#777;line-height:1.6;">
+        Si tienes algún problema con el botón, copia y pega el siguiente enlace en tu navegador:<br/>
+        <a href="{invite_link}" style="color:#0f0f0f;word-break:break-all;">{invite_link}</a>
+      </p>
+    """
+    await _post({
+        "from": f"Vantier <{settings.resend_from_email}>",
+        "to": [email],
+        "reply_to": settings.resend_support_email,
+        "subject": "Te han invitado a unirte al panel de Vantier",
+        "html": _html("Invitación — Vantier", body),
+        "text": f"Has sido invitado a Vantier como {role}. Crea tu cuenta en {invite_link}",
+    })
+
