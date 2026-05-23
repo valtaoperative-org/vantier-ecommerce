@@ -2,13 +2,9 @@
 import { RouterLink } from 'vue-router'
 import { useCartStore } from '@features/cart/store'
 import FreeShippingBar from '@shared/components/FreeShippingBar.vue'
-
+import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
 
 const cart = useCartStore()
-
-function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
-}
 </script>
 
 <template>
@@ -20,7 +16,10 @@ function formatPrice(n: number) {
     <div class="space-y-2 pt-2">
       <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-on-surface)]">
         <span>Subtotal</span>
-        <span class="font-medium">{{ formatPrice(cart.subtotal) }}</span>
+        <div class="text-right">
+          <span class="font-medium">{{ formatUSD(cart.subtotal) }}</span>
+          <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">(~{{ formatMXNFromUSD(cart.subtotal) }})</p>
+        </div>
       </div>
       <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
         <span>Shipping</span>

@@ -2,15 +2,12 @@
 import { computed } from 'vue'
 import { useCartStore } from '@features/cart/store'
 import type { ShippingRate } from '../types'
+import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
 
 const props = defineProps<{ shippingRate?: ShippingRate | null }>()
 
 const cart = useCartStore()
 const total = computed(() => cart.subtotal + (props.shippingRate?.price_usd ?? 0))
-
-function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
-}
 </script>
 
 <template>
@@ -29,7 +26,7 @@ function formatPrice(n: number) {
           <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">{{ item.color }} · {{ item.size }} · qty {{ item.quantity }}</p>
         </div>
         <p class="text-[length:var(--text-small)] text-[color:var(--color-on-surface)] flex-shrink-0">
-          {{ formatPrice(item.priceUSD * item.quantity) }}
+          {{ formatUSD(item.priceUSD * item.quantity) }}
         </p>
       </div>
     </div>
@@ -38,19 +35,22 @@ function formatPrice(n: number) {
     <div class="space-y-2">
       <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-on-surface)]">
         <span>Subtotal</span>
-        <span>{{ formatPrice(cart.subtotal) }}</span>
+        <span>{{ formatUSD(cart.subtotal) }}</span>
       </div>
       <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
         <span>Shipping</span>
         <span>
           <span v-if="!shippingRate">—</span>
           <span v-else-if="cart.freeShipping || shippingRate.price_usd === 0">Free</span>
-          <span v-else>{{ formatPrice(shippingRate.price_usd) }}</span>
+          <span v-else>{{ formatUSD(shippingRate.price_usd) }}</span>
         </span>
       </div>
       <div class="flex justify-between text-[length:var(--text-small)] font-semibold text-[color:var(--color-on-surface)] pt-2 border-t border-[color:var(--color-border)]">
         <span>Total</span>
-        <span>{{ formatPrice(total) }}</span>
+        <div class="text-right">
+          <span>{{ formatUSD(total) }}</span>
+          <p class="text-[length:var(--text-micro)] font-normal text-[color:var(--color-border-strong)]">(~{{ formatMXNFromUSD(total) }})</p>
+        </div>
       </div>
     </div>
   </aside>

@@ -14,6 +14,7 @@ import ProductLookbook from './ProductLookbook.vue'
 import CareInstructions from './CareInstructions.vue'
 import type { CareData } from './CareInstructions.vue'
 import RelatedProducts from './RelatedProducts.vue'
+import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
 
 type AddState = 'idle' | 'loading' | 'success'
 
@@ -56,7 +57,7 @@ watch(allVariants, (variants) => {
 onMounted(() => products.loadProduct(route.params.id as string))
 
 function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  return formatUSD(n)
 }
 
 const resolvedVariant = computed(() => variantSelector.value?.resolvedVariant ?? null)
@@ -229,9 +230,14 @@ async function addToCart() {
           </div>
 
           <!-- Price -->
-          <p class="text-[length:var(--text-title)] font-light text-[color:var(--color-on-surface)] transition-colors">
-            {{ formatPrice(finalPrice) }}
-          </p>
+          <div class="flex flex-col gap-0.5">
+            <p class="text-[length:var(--text-title)] font-light text-[color:var(--color-on-surface)] transition-colors">
+              {{ formatPrice(finalPrice) }}
+            </p>
+            <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
+              (~{{ formatMXNFromUSD(finalPrice) }} MXN)
+            </p>
+          </div>
 
           <!-- Variant selector -->
           <VariantSelector

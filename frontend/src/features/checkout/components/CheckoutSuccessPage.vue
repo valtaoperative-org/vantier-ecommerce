@@ -64,8 +64,10 @@ onMounted(async () => {
   loading.value = false
 })
 
+import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
+
 function formatPrice(n: string | number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n))
+  return formatUSD(Number(n))
 }
 </script>
 
@@ -143,7 +145,10 @@ function formatPrice(n: string | number) {
       </div>
       <div class="flex justify-between font-semibold text-[color:var(--color-on-surface)] border-t border-[color:var(--color-border)] pt-2">
         <span>Total</span>
-        <span>{{ formatPrice(order.total_usd) }}</span>
+        <div class="text-right">
+          <span>{{ formatPrice(order.total_usd) }}</span>
+          <p class="text-[length:var(--text-micro)] font-normal text-[color:var(--color-border-strong)]">(~{{ formatMXNFromUSD(Number(order.total_usd)) }})</p>
+        </div>
       </div>
     </div>
 

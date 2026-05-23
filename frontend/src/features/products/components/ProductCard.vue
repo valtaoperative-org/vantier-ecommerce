@@ -11,6 +11,7 @@ import ColorSwatch from '@shared/components/ColorSwatch.vue'
 import LowStockBadge from './LowStockBadge.vue'
 import { useCartStore } from '@features/cart/store'
 import { useToast } from '@shared/composables/useToast'
+import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
 
 type QuickState = 'idle' | 'loading' | 'success'
 
@@ -164,7 +165,8 @@ async function onQuickAdd(e: Event) {
         </h3>
       </RouterLink>
       <p class="text-[length:var(--text-small)] text-[color:var(--color-on-surface)] opacity-60">
-        ${{ displayPrice.toFixed(2) }} USD
+        {{ formatUSD(displayPrice) }}
+        <span class="text-[length:var(--text-micro)] opacity-70">(~{{ formatMXNFromUSD(displayPrice) }})</span>
       </p>
       <!-- Color swatches -->
       <div v-if="uniqueColors.length > 0" class="flex gap-1.5 mt-1">
