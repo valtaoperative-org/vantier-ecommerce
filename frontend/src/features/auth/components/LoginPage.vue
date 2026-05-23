@@ -38,11 +38,20 @@ async function submit() {
     }
 
     if (isRegister.value) {
-      const token = await auth.register(email.value, password.value)
-      if (!token) {
-        // Token is null, meaning Verify at Sign-up is enabled and OTP was sent.
-        isVerifying.value = true
-        return
+      try {
+        const token = await auth.register(email.value, password.value)
+        if (!token) {
+          // Token is null, meaning Verify at Sign-up is enabled and OTP was sent.
+          isVerifying.value = true
+          return
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.toLowerCase().includes('exist') || msg.toLowerCase().includes('already')) {
+          error.value = 'Esta cuenta ya está registrada. Por favor, selecciona "Iniciar sesión" e ingresa tu contraseña existente.'
+          return
+        }
+        throw e
       }
     } else {
       await auth.login(email.value, password.value)
