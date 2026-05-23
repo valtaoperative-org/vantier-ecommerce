@@ -84,6 +84,7 @@ async def get_admin_user(
             if admin is not None:
                 admin.neon_auth_user_id = neon_id
                 await db.flush()
+                await db.refresh(admin)
 
     if admin is None or not admin.is_active:
         raise ForbiddenException("User is not an authorized admin")
