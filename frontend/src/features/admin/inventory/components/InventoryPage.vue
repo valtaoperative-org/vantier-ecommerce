@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAdminInventoryStore } from '../store'
 import { LINE_LABELS, STYLE_LABELS } from '@features/products/types'
 import type { AdminProduct, AdminVariant, ProductCreatePayload, VariantCreatePayload, ProductLine, ProductStyle, ProductSize } from '../types'
-import { uploadVariantImage } from '../api'
+import { uploadVariantImage, deleteVariantImage } from '../api'
 import AdminStatCard from '@features/admin/components/shared/AdminStatCard.vue'
 import StatusBadge from '@features/admin/components/shared/StatusBadge.vue'
 import StockBar from '@features/admin/components/shared/StockBar.vue'
@@ -19,8 +19,29 @@ const stockFilter = ref('all')
 const saving      = ref<string | null>(null)
 const showAddProduct = ref(false)
 const showAddVariant = ref<string | null>(null)
-const showImages     = ref<{ productId: string; variant: AdminVariant } | null>(null)
-const imageUploading = ref(false)
+const showImages        = ref<{ productId: string; variant: AdminVariant } | null>(null)
+const imageUploading    = ref(false)
+const confirmDeleteImage = ref<string | null>(null)  // imageId pending deletion
+const deletingImage     = ref(false)
+
+async function deleteImage(imageId: string) {
+  if (!showImages.value) return
+  deletingImage.value = true
+  try {
+    await deleteVariantImage(showImages.value.productId, showImages.value.variant.id, imageId)
+    showImages.value.variant.images = showImages.value.variant.images.filter(i => i.id !== imageId)
+    // Sync to store
+    for (const p of store.products) {
+      const v = p.variants.find(v => v.id === showImages.value!.variant.id)
+      if (v) { v.images = v.images.filter(i => i.id !== imageId); break }
+    }
+  } catch (e: any) {
+    store.error = e?.response?.data?.detail ?? 'Error al eliminar imagen'
+  } finally {
+    deletingImage.value = false
+    confirmDeleteImage.value = null
+  }
+}
 
 // ── Add Product ──────────────────────────────────────────────────────────────
 const newProduct = ref<ProductCreatePayload>({ line: 'polo_atelier', name: '', description: '' })
@@ -785,23 +806,62 @@ onMounted(() => store.loadProducts())
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="showImages" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showImages = null" />
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showImages = null; confirmDeleteImage = null" />
         <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-5">
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-[0.9rem] font-semibold" style="color: var(--admin-text-primary);">Imágenes</h2>
               <p class="text-[0.72rem] font-mono mt-0.5" style="color: var(--admin-text-secondary);">{{ showImages.variant.sku }}</p>
             </div>
-            <button style="color: var(--admin-text-secondary);" @click="showImages = null">✕</button>
+            <button style="color: var(--admin-text-secondary);" @click="showImages = null; confirmDeleteImage = null">✕</button>
           </div>
           <div v-if="showImages.variant.images.length > 0" class="grid grid-cols-3 gap-3">
             <div
               v-for="img in showImages.variant.images"
               :key="img.id"
-              class="relative aspect-square rounded-xl overflow-hidden border"
+              class="group relative aspect-square rounded-xl overflow-hidden border"
               style="border-color: var(--admin-border);"
             >
               <img :src="img.url" :alt="img.alt_text ?? ''" class="w-full h-full object-cover" />
+
+              <!-- Confirm-delete overlay -->
+              <template v-if="confirmDeleteImage === img.id">
+                <div class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70">
+                  <p class="text-white text-[0.65rem] font-medium uppercase tracking-wider">¿Eliminar?</p>
+                  <div class="flex gap-2">
+                    <button
+                      class="text-[0.65rem] px-2.5 py-1 rounded-lg font-medium transition-opacity hover:opacity-80"
+                      style="background: rgba(255,255,255,0.15); color: white;"
+                      :disabled="deletingImage"
+                      @click="confirmDeleteImage = null"
+                    >No</button>
+                    <button
+                      class="text-[0.65rem] px-2.5 py-1 rounded-lg font-medium flex items-center gap-1 transition-opacity hover:opacity-80 disabled:opacity-50"
+                      style="background: rgb(220,38,38); color: white;"
+                      :disabled="deletingImage"
+                      @click="deleteImage(img.id)"
+                    >
+                      <span v-if="deletingImage" class="w-2.5 h-2.5 border border-white border-t-transparent rounded-full animate-spin" />
+                      <span v-else>Sí</span>
+                    </button>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Trash icon — visible on hover when not confirming -->
+              <template v-else>
+                <button
+                  class="absolute top-1.5 right-1.5 w-7 h-7 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  style="background: rgba(0,0,0,0.55); color: white;"
+                  title="Eliminar imagen"
+                  @click="confirmDeleteImage = img.id"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </template>
             </div>
           </div>
           <p v-else class="text-[0.82rem] text-center py-4" style="color: var(--admin-text-secondary);">Sin imágenes aún</p>
