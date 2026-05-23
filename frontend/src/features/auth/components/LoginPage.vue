@@ -7,6 +7,7 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
+const isRegister = ref(false)
 const email = ref('')
 const password = ref('')
 const error = ref<string | null>(null)
@@ -16,11 +17,15 @@ async function submit() {
   error.value = null
   loading.value = true
   try {
-    await auth.login(email.value, password.value)
+    if (isRegister.value) {
+      await auth.register(email.value, password.value)
+    } else {
+      await auth.login(email.value, password.value)
+    }
     const redirect = (route.query.redirect as string) ?? (auth.isAdmin ? '/admin/dashboard' : '/')
     await router.push(redirect)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Login failed. Check your credentials.'
+    error.value = e instanceof Error ? e.message : 'Error en la autenticación. Revisa tus datos.'
   } finally {
     loading.value = false
   }
@@ -35,13 +40,13 @@ async function submit() {
         class="text-[1.6rem] font-bold tracking-tight"
         style="color: var(--color-obsidian);"
       >
-        Iniciar sesión
+        {{ isRegister ? 'Crear cuenta' : 'Iniciar sesión' }}
       </h1>
       <p
         class="text-[0.82rem]"
         style="color: rgba(0,0,0,0.4);"
       >
-        Ingresa tus credenciales para acceder al panel.
+        {{ isRegister ? 'Registra tus datos para acceder.' : 'Ingresa tus credenciales para acceder al panel.' }}
       </p>
     </div>
 
@@ -103,10 +108,21 @@ async function submit() {
       >
         <span v-if="loading" class="inline-flex items-center gap-2">
           <span class="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          Ingresando…
+          {{ isRegister ? 'Registrando...' : 'Ingresando...' }}
         </span>
-        <span v-else>Ingresar</span>
+        <span v-else>{{ isRegister ? 'Crear cuenta' : 'Ingresar' }}</span>
       </button>
+
+      <div class="text-center mt-4">
+        <button
+          type="button"
+          @click="isRegister = !isRegister"
+          class="text-[0.8rem] hover:underline"
+          style="color: rgba(0,0,0,0.6);"
+        >
+          {{ isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
+        </button>
+      </div>
     </form>
   </div>
 </template>
