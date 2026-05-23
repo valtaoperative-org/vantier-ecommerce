@@ -77,6 +77,46 @@ export const useAdminInventoryStore = defineStore('admin/inventory', () => {
     }
   }
 
+  async function updateProductName(productId: string, name: string): Promise<boolean> {
+    try {
+      const updated = await api.updateProduct(productId, { name })
+      const product = products.value.find(p => p.id === productId)
+      if (product) product.name = updated.name
+      return true
+    } catch (e: any) {
+      error.value = e?.response?.data?.detail ?? 'Failed to update product'
+      return false
+    }
+  }
+
+  async function updateVariantPrice(productId: string, variantId: string, price_usd: number): Promise<boolean> {
+    try {
+      const updated = await api.updateVariant(productId, variantId, { price_usd })
+      for (const p of products.value) {
+        const v = p.variants.find(v => v.id === variantId)
+        if (v) { v.price_usd = updated.price_usd; break }
+      }
+      return true
+    } catch (e: any) {
+      error.value = e?.response?.data?.detail ?? 'Failed to update price'
+      return false
+    }
+  }
+
+  async function deactivateVariant(productId: string, variantId: string): Promise<boolean> {
+    try {
+      await api.deactivateVariant(productId, variantId)
+      for (const p of products.value) {
+        const v = p.variants.find(v => v.id === variantId)
+        if (v) { v.is_active = false; break }
+      }
+      return true
+    } catch (e: any) {
+      error.value = e?.response?.data?.detail ?? 'Failed to deactivate variant'
+      return false
+    }
+  }
+
   return {
     products,
     total,
@@ -87,5 +127,8 @@ export const useAdminInventoryStore = defineStore('admin/inventory', () => {
     addVariant,
     adjustStock,
     deactivateProduct,
+    updateProductName,
+    updateVariantPrice,
+    deactivateVariant,
   }
 })

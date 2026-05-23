@@ -56,7 +56,7 @@ async function submitAddVariant(productId: string) {
 interface EditState { variantId: string; draftDelta: number }
 const editing = ref<EditState | null>(null)
 
-function startEdit(v: AdminVariant)  { editing.value = { variantId: v.id, draftDelta: 0 } }
+function startEdit(v: AdminVariant)  { editing.value = { variantId: v.id, draftDelta: 0 }; editingPrice.value = null }
 function cancelEdit()                { editing.value = null }
 
 async function saveStock(v: AdminVariant) {
@@ -65,6 +65,64 @@ async function saveStock(v: AdminVariant) {
   await store.adjustStock(v.id, editing.value.draftDelta)
   saving.value = null
   editing.value = null
+}
+
+// ── Product name edit ────────────────────────────────────────────────────────
+const editingName = ref<{ productId: string; draft: string } | null>(null)
+const savingName  = ref(false)
+
+function startEditName(p: AdminProduct) { editingName.value = { productId: p.id, draft: p.name } }
+function cancelEditName()               { editingName.value = null }
+
+async function saveProductName() {
+  if (!editingName.value || !editingName.value.draft.trim()) return
+  savingName.value = true
+  await store.updateProductName(editingName.value.productId, editingName.value.draft.trim())
+  savingName.value = false
+  editingName.value = null
+}
+
+// ── Price edit ───────────────────────────────────────────────────────────────
+interface PriceEditState { variantId: string; productId: string; draft: number }
+const editingPrice = ref<PriceEditState | null>(null)
+const savingPrice  = ref(false)
+
+function startEditPrice(v: AdminVariant, productId: string) {
+  editingPrice.value = { variantId: v.id, productId, draft: Number(v.price_usd) }
+  editing.value = null
+}
+function cancelEditPrice() { editingPrice.value = null }
+
+async function savePrice() {
+  if (!editingPrice.value || editingPrice.value.draft <= 0) return
+  savingPrice.value = true
+  await store.updateVariantPrice(editingPrice.value.productId, editingPrice.value.variantId, editingPrice.value.draft)
+  savingPrice.value = false
+  editingPrice.value = null
+}
+
+// ── Delete confirmation ──────────────────────────────────────────────────────
+interface ConfirmState { type: 'product' | 'variant'; productId: string; variantId?: string; label: string }
+const confirmDelete = ref<ConfirmState | null>(null)
+const deleting      = ref(false)
+
+function askDeleteProduct(p: AdminProduct) {
+  confirmDelete.value = { type: 'product', productId: p.id, label: p.name }
+}
+function askDeleteVariant(p: AdminProduct, v: AdminVariant) {
+  confirmDelete.value = { type: 'variant', productId: p.id, variantId: v.id, label: `${v.size} · ${v.color}` }
+}
+
+async function runDelete() {
+  if (!confirmDelete.value) return
+  deleting.value = true
+  if (confirmDelete.value.type === 'product') {
+    await store.deactivateProduct(confirmDelete.value.productId)
+  } else if (confirmDelete.value.variantId) {
+    await store.deactivateVariant(confirmDelete.value.productId, confirmDelete.value.variantId)
+  }
+  deleting.value = false
+  confirmDelete.value = null
 }
 
 // ── Image upload ─────────────────────────────────────────────────────────────
@@ -288,11 +346,52 @@ onMounted(() => store.loadProducts())
             class="flex items-center justify-between px-5 py-3.5"
             style="border-bottom: 1px solid var(--admin-border); background: rgba(201,168,76,0.04);"
           >
-            <div class="flex items-center gap-3 min-w-0">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
               <svg class="w-4 h-4 flex-shrink-0" style="color: var(--admin-amber);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <span class="text-[0.88rem] font-semibold" style="color: var(--admin-text-primary);">{{ product.name }}</span>
+
+              <!-- Inline name edit -->
+              <template v-if="editingName?.productId === product.id">
+                <input
+                  v-model="editingName.draft"
+                  type="text"
+                  class="text-[0.88rem] font-semibold border-b px-1 py-0.5 focus:outline-none w-40"
+                  style="border-color: var(--admin-amber); color: var(--admin-text-primary);"
+                  @keyup.enter="saveProductName"
+                  @keyup.escape="cancelEditName"
+                />
+                <button
+                  class="text-[0.65rem] px-1.5 py-0.5 rounded text-white font-medium disabled:opacity-50 flex items-center gap-0.5"
+                  style="background: var(--admin-amber);"
+                  :disabled="savingName"
+                  @click="saveProductName"
+                >
+                  <span v-if="savingName" class="w-2.5 h-2.5 border border-white border-t-transparent rounded-full animate-spin inline-block" />
+                  <span v-else>✓</span>
+                </button>
+                <button
+                  class="text-[0.65rem] px-1.5 py-0.5 rounded"
+                  style="color: var(--admin-text-secondary);"
+                  @click="cancelEditName"
+                >✕</button>
+              </template>
+              <template v-else>
+                <span class="text-[0.88rem] font-semibold" style="color: var(--admin-text-primary);">{{ product.name }}</span>
+                <!-- Edit name pencil -->
+                <button
+                  class="opacity-40 hover:opacity-100 transition-opacity flex-shrink-0"
+                  style="color: var(--admin-text-secondary);"
+                  title="Editar nombre"
+                  @click="startEditName(product)"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </template>
+
               <span
                 class="text-[0.62rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0"
                 style="background: rgba(201,168,76,0.12); color: var(--admin-amber);"
@@ -301,16 +400,31 @@ onMounted(() => store.loadProducts())
                 {{ totalStock(product) }} uds · {{ product.variants.filter(v => v.is_active).length }} variantes
               </span>
             </div>
-            <button
-              class="flex items-center gap-1.5 text-[0.72rem] font-medium px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
-              style="background: rgba(0,0,0,0.05); color: var(--admin-text-secondary);"
-              @click="showAddVariant = product.id"
-            >
-              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              Variante
-            </button>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <!-- Delete product -->
+              <button
+                class="p-1.5 rounded-lg transition-colors hover:bg-red-50"
+                style="color: rgba(220,38,38,0.5);"
+                title="Eliminar producto"
+                @click="askDeleteProduct(product)"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <!-- Add variant -->
+              <button
+                class="flex items-center gap-1.5 text-[0.72rem] font-medium px-3 py-1.5 rounded-lg transition-colors"
+                style="background: rgba(0,0,0,0.05); color: var(--admin-text-secondary);"
+                @click="showAddVariant = product.id"
+              >
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Variante
+              </button>
+            </div>
           </div>
 
           <!-- Size × Color matrix -->
@@ -363,8 +477,8 @@ onMounted(() => store.loadProducts())
                     class="px-2 py-2 text-center"
                   >
                     <template v-if="findVariant(product, size, color)">
+                      <!-- STOCK EDIT MODE -->
                       <template v-if="editing?.variantId === findVariant(product, size, color)!.id">
-                        <!-- Inline stock edit -->
                         <div class="flex flex-col items-center gap-1 py-1">
                           <span class="text-[0.65rem]" style="color: var(--admin-text-secondary);">
                             {{ findVariant(product, size, color)!.stock_qty }} +
@@ -376,11 +490,7 @@ onMounted(() => store.loadProducts())
                             style="border-color: var(--admin-amber);"
                           />
                           <div class="flex gap-1">
-                            <button
-                              class="text-[0.62rem] px-1.5 py-0.5 rounded transition-colors"
-                              style="color: var(--admin-text-secondary);"
-                              @click="cancelEdit"
-                            >✕</button>
+                            <button class="text-[0.62rem] px-1.5 py-0.5 rounded" style="color: var(--admin-text-secondary);" @click="cancelEdit">✕</button>
                             <button
                               class="text-[0.62rem] px-1.5 py-0.5 rounded text-white font-medium disabled:opacity-50 flex items-center gap-0.5"
                               style="background: var(--admin-amber);"
@@ -393,11 +503,42 @@ onMounted(() => store.loadProducts())
                           </div>
                         </div>
                       </template>
+
+                      <!-- PRICE EDIT MODE -->
+                      <template v-else-if="editingPrice?.variantId === findVariant(product, size, color)!.id">
+                        <div class="flex flex-col items-center gap-1 py-1">
+                          <span class="text-[0.58rem] uppercase tracking-wider" style="color: var(--admin-text-secondary);">USD</span>
+                          <input
+                            v-model.number="editingPrice.draft"
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            class="w-16 text-center text-[0.75rem] border rounded px-1 py-0.5 focus:outline-none"
+                            style="border-color: var(--admin-amber);"
+                            @keyup.enter="savePrice"
+                            @keyup.escape="cancelEditPrice"
+                          />
+                          <div class="flex gap-1">
+                            <button class="text-[0.62rem] px-1.5 py-0.5 rounded" style="color: var(--admin-text-secondary);" @click="cancelEditPrice">✕</button>
+                            <button
+                              class="text-[0.62rem] px-1.5 py-0.5 rounded text-white font-medium disabled:opacity-50 flex items-center gap-0.5"
+                              style="background: var(--admin-amber);"
+                              :disabled="savingPrice || editingPrice.draft <= 0"
+                              @click="savePrice"
+                            >
+                              <span v-if="savingPrice" class="w-2 h-2 border border-current border-t-transparent rounded-full animate-spin inline-block" />
+                              <span v-else>✓</span>
+                            </button>
+                          </div>
+                        </div>
+                      </template>
+
+                      <!-- DISPLAY MODE -->
                       <template v-else>
-                        <!-- Stock edit button + image trigger (sibling divs, no nested buttons) -->
-                        <div class="group flex flex-col items-center gap-0.5">
+                        <div class="group/cell flex flex-col items-center gap-0.5">
+                          <!-- Stock: click to edit stock -->
                           <button
-                            class="w-full flex flex-col items-center gap-0.5 rounded-lg px-2 py-2 transition-colors duration-100"
+                            class="w-full flex flex-col items-center gap-0.5 rounded-lg px-2 pt-2 pb-1 transition-colors duration-100"
                             :class="variantStatus(findVariant(product, size, color)!.stock_qty) === 'critico' ? 'hover:bg-red-50'
                                    : variantStatus(findVariant(product, size, color)!.stock_qty) === 'bajo' ? 'hover:bg-amber-50'
                                    : 'hover:bg-green-50'"
@@ -412,26 +553,47 @@ onMounted(() => store.loadProducts())
                                   ? { color: 'var(--status-warn-text)' }
                                   : { color: 'var(--status-ok-text)' }"
                             >{{ findVariant(product, size, color)!.stock_qty }}</span>
-                            <span class="text-[0.62rem] tabular-nums" style="color: var(--admin-text-secondary);">
-                              ${{ Number(findVariant(product, size, color)!.price_usd).toFixed(0) }}
-                            </span>
-                            <span class="text-[0.55rem] uppercase tracking-wider opacity-0 group-hover:opacity-60 transition-opacity" style="color: var(--admin-text-secondary);">editar</span>
+                            <span class="text-[0.55rem] uppercase tracking-wider opacity-0 group-hover/cell:opacity-50 transition-opacity" style="color: var(--admin-text-secondary);">stock</span>
                           </button>
-                          <!-- Image trigger — sibling, never nested inside button -->
+
+                          <!-- Price: click to edit price -->
                           <button
-                            class="text-[0.58rem] flex items-center gap-0.5 transition-opacity rounded px-1"
-                            :class="findVariant(product, size, color)!.images.length > 0 ? 'opacity-80 hover:opacity-100' : 'opacity-50 hover:opacity-80'"
-                            style="color: var(--admin-amber);"
-                            title="Gestionar imágenes"
-                            @click.stop="showImages = { productId: product.id, variant: findVariant(product, size, color)! }"
+                            class="text-[0.62rem] tabular-nums px-1.5 py-0.5 rounded hover:opacity-70 transition-opacity"
+                            style="color: var(--admin-text-secondary);"
+                            title="Editar precio"
+                            @click="startEditPrice(findVariant(product, size, color)!, product.id)"
                           >
-                            <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                              <circle cx="8.5" cy="8.5" r="1.5"/>
-                              <polyline points="21 15 16 10 5 21"/>
-                            </svg>
-                            {{ findVariant(product, size, color)!.images.length }}
+                            ${{ Number(findVariant(product, size, color)!.price_usd).toFixed(0) }}
                           </button>
+
+                          <!-- Bottom row: images + delete -->
+                          <div class="flex items-center gap-1">
+                            <button
+                              class="text-[0.58rem] flex items-center gap-0.5 transition-opacity rounded px-1"
+                              :class="findVariant(product, size, color)!.images.length > 0 ? 'opacity-80 hover:opacity-100' : 'opacity-50 hover:opacity-80'"
+                              style="color: var(--admin-amber);"
+                              title="Gestionar imágenes"
+                              @click.stop="showImages = { productId: product.id, variant: findVariant(product, size, color)! }"
+                            >
+                              <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                              </svg>
+                              {{ findVariant(product, size, color)!.images.length }}
+                            </button>
+                            <!-- Delete variant -->
+                            <button
+                              class="opacity-0 group-hover/cell:opacity-60 hover:!opacity-100 transition-opacity rounded p-0.5"
+                              style="color: rgb(220,38,38);"
+                              title="Eliminar variante"
+                              @click.stop="askDeleteVariant(product, findVariant(product, size, color)!)"
+                            >
+                              <svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke-linecap="round" stroke-linejoin="round"/>
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       </template>
                     </template>
@@ -530,6 +692,40 @@ onMounted(() => store.loadProducts())
             <AdminButton variant="primary" :disabled="!newVariant.color.trim() || newVariant.price_usd <= 0" :loading="creatingVariant" @click="submitAddVariant(showAddVariant!)">
               Agregar Variante
             </AdminButton>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <!-- ── Delete Confirmation Modal ────────────────────────────────────── -->
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="confirmDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="confirmDelete = null" />
+        <div class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background: rgba(220,38,38,0.1);">
+              <svg class="w-4 h-4" style="color: rgb(220,38,38);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="9" x2="12" y2="13" stroke-linecap="round"/><line x1="12" y1="17" x2="12.01" y2="17" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-[0.88rem] font-semibold" style="color: var(--admin-text-primary);">
+                {{ confirmDelete.type === 'product' ? 'Eliminar producto' : 'Eliminar variante' }}
+              </h2>
+              <p class="text-[0.78rem] mt-1" style="color: var(--admin-text-secondary);">
+                <span class="font-medium" style="color: var(--admin-text-primary);">{{ confirmDelete.label }}</span>
+                {{ confirmDelete.type === 'product'
+                  ? ' se desactivará y dejará de mostrarse en la tienda. Los pedidos existentes no se afectan.'
+                  : ' se desactivará y dejará de mostrarse. El stock asociado se preserva.' }}
+              </p>
+            </div>
+          </div>
+          <div class="flex justify-end gap-3 pt-1">
+            <button class="text-[0.75rem] px-4 py-2" style="color: var(--admin-text-secondary);" @click="confirmDelete = null">Cancelar</button>
+            <AdminButton variant="danger" :loading="deleting" @click="runDelete">Eliminar</AdminButton>
           </div>
         </div>
       </div>
