@@ -14,6 +14,8 @@ import CareInstructions from './CareInstructions.vue'
 import type { CareData } from './CareInstructions.vue'
 import RelatedProducts from './RelatedProducts.vue'
 import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
+import type { Product } from '../types'
+import { fetchProducts } from '../api'
 
 type AddState = 'idle' | 'loading' | 'success'
 
@@ -93,13 +95,20 @@ function onFileSelect(e: Event) {
   custFilePreview.value = URL.createObjectURL(file)
 }
 
-// Related: same line, different product id (max 4)
-const related = computed(() => {
-  if (!product.value) return []
-  return products.catalog
-    .filter(p => p.id !== product.value!.id && p.line === product.value!.line)
-    .slice(0, 4)
-})
+const relatedProductsLocal = ref<Product[]>([])
+
+watch(product, async (newProd) => {
+  if (newProd) {
+    try {
+      const prods = await fetchProducts({ line: newProd.line })
+      relatedProductsLocal.value = prods
+        .filter(p => p.id !== newProd.id)
+        .slice(0, 2)
+    } catch {
+      relatedProductsLocal.value = []
+    }
+  }
+}, { immediate: true })
 
 const canAdd = computed(() => {
   if (!selectedColor.value || !selectedSize.value || !resolvedVariant.value) return false
@@ -120,23 +129,7 @@ const CARE_BY_LINE: Record<string, CareData> = {
   essential:    STANDARD_CARE,
 }
 
-const RELATED_BY_LINE: Record<string, Array<{ line: string; href: string }>> = {
-  polo_atelier: [
-    { line: 'Signature', href: '/shop?line=signature' },
-    { line: 'Essential', href: '/shop?line=essential' },
-  ],
-  signature: [
-    { line: 'Polo Atelier', href: '/shop?line=polo_atelier' },
-    { line: 'Essential',    href: '/shop?line=essential' },
-  ],
-  essential: [
-    { line: 'Polo Atelier', href: '/shop?line=polo_atelier' },
-    { line: 'Signature',    href: '/shop?line=signature' },
-  ],
-}
-
 const currentCare = computed(() => CARE_BY_LINE[product.value?.line ?? ''] ?? CARE_BY_LINE['polo_atelier'])
-const relatedLines = computed(() => RELATED_BY_LINE[product.value?.line ?? ''] ?? RELATED_BY_LINE['polo_atelier'])
 
 // Line + style display labels
 const lineLabel = computed(() => product.value ? (LINE_LABELS[product.value.line] ?? product.value.line) : '')
@@ -347,7 +340,7 @@ async function addToCart() {
 
     <!-- PDP storytelling sections -->
     <CareInstructions :line-name="lineLabel" :care="currentCare" />
-    <RelatedProducts :related-lines="relatedLines" />
+    <RelatedProducts :related-products="relatedProductsLocal" />
 
     <!-- Sticky Add to Cart — mobile only -->
     <Teleport to="body">
@@ -372,30 +365,5 @@ async function addToCart() {
 
     <!-- Size guide modal -->
     <SizeGuideModal :open="sizeGuideOpen" :line="product?.line" @close="sizeGuideOpen = false" />
-
-    <!-- Related products -->
-    <section v-if="related.length" class="bg-[color:var(--color-warm-beige)] py-[var(--spacing-section)]">
-      <div class="max-w-[var(--container-max)] mx-auto px-[var(--spacing-container)]">
-        <div class="flex items-end justify-between mb-3">
-          <div>
-            <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] opacity-40 mb-1">{{ lineLabel }}</p>
-            <h2 class="text-[length:var(--text-title)] font-light uppercase tracking-[var(--tracking-headline)]">You May Also Like</h2>
-          </div>
-          <RouterLink
-            to="/shop"
-            class="hidden sm:inline-flex items-center gap-2 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] opacity-40 hover:opacity-100 transition-opacity duration-[var(--duration-normal)] mb-1"
-          >
-            View all
-            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </RouterLink>
-        </div>
-        <div class="w-full h-px bg-[color:var(--color-obsidian)]/10 mb-10" />
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-[var(--spacing-card-gap)]">
-          <ProductCard v-for="p in related" :key="p.id" :product="p" />
-        </div>
-      </div>
-    </section>
   </template>
 </template>

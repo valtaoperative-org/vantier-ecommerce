@@ -1,46 +1,45 @@
 <script setup lang="ts">
+import type { Product } from '../types'
+import ProductCard from './ProductCard.vue'
+
 defineProps<{
-  relatedLines: Array<{ line: string; href: string }>
+  relatedProducts: Product[]
 }>()
 </script>
 
 <template>
-  <section class="bg-[color:var(--color-warm-beige)] py-16 px-[var(--spacing-container)] border-t border-[color:var(--color-obsidian)]/5">
+  <section v-if="relatedProducts.length > 0" class="bg-[color:var(--color-warm-beige)] py-16 px-[var(--spacing-container)] border-t border-[color:var(--color-obsidian)]/5">
     <div class="max-w-[var(--container-max)] mx-auto">
 
       <!-- Header -->
       <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] text-[color:var(--color-obsidian)]/35 mb-2">
-        De la misma línea
+        From the same line
       </p>
-      <h2 class="text-[length:var(--text-headline)] font-light uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-obsidian)] mb-3">
-        También te puede interesar
-      </h2>
+      <div class="flex items-end justify-between mb-3">
+        <h2 class="text-[length:var(--text-headline)] font-light uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-obsidian)]">
+          You might also like
+        </h2>
+        <RouterLink
+          to="/shop"
+          class="hidden sm:inline-flex items-center gap-2 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] opacity-40 hover:opacity-100 transition-opacity duration-[var(--duration-normal)] mb-1"
+        >
+          View all
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </RouterLink>
+      </div>
       <div class="w-7 h-px bg-[color:var(--color-amber-accent)] mb-10" />
 
       <!-- Grid: related cards + shop-all tile -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-[var(--spacing-card-gap)]">
 
-        <!-- Related line cards -->
-        <RouterLink
-          v-for="item in relatedLines"
-          :key="item.line"
-          :to="item.href"
-          class="relative aspect-[3/4] bg-[color:var(--color-obsidian)]/12 overflow-hidden group"
-          data-related-card
-        >
-          <div class="absolute top-0 left-0 w-6 h-px bg-[color:var(--color-amber-accent)]" />
-          <div class="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[color:var(--color-obsidian)]/20 to-transparent">
-            <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-obsidian)]/45 mb-1">
-              Line
-            </p>
-            <h3 class="text-[length:var(--text-small)] font-medium uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-obsidian)]">
-              {{ item.line }}
-            </h3>
-          </div>
-          <div
-            class="absolute inset-0 border border-[color:var(--color-obsidian)]/0 group-hover:border-[color:var(--color-amber-accent)]/30 transition-colors duration-[var(--duration-normal)]"
-          />
-        </RouterLink>
+        <!-- Real product cards -->
+        <ProductCard
+          v-for="product in relatedProducts"
+          :key="product.id"
+          :product="product"
+        />
 
         <!-- Shop all editorial tile -->
         <RouterLink
@@ -50,9 +49,9 @@ defineProps<{
         >
           <div class="absolute top-0 left-0 w-5 h-px bg-[color:var(--color-amber-accent)]" />
           <div class="text-center px-6">
-            <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] text-[color:var(--color-ivory)]/30 mb-2">Ver toda la</p>
+            <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] text-[color:var(--color-ivory)]/30 mb-2">Shop the entire</p>
             <h3 class="text-[length:var(--text-title)] font-light tracking-[var(--tracking-headline)] text-[color:var(--color-ivory)]/65 group-hover:text-[color:var(--color-ivory)] transition-colors duration-[var(--duration-normal)]">
-              Colección →
+              Collection →
             </h3>
           </div>
         </RouterLink>
