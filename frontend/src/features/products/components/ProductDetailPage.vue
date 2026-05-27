@@ -10,7 +10,6 @@ import VariantSelector from './VariantSelector.vue'
 import SizeGuideModal from './SizeGuideModal.vue'
 import ProductCard from './ProductCard.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
-import ProductLookbook from './ProductLookbook.vue'
 import CareInstructions from './CareInstructions.vue'
 import type { CareData } from './CareInstructions.vue'
 import RelatedProducts from './RelatedProducts.vue'
@@ -109,25 +108,16 @@ const canAdd = computed(() => {
 })
 
 // Care + related lines keyed by backend enum values
+const STANDARD_CARE: CareData = {
+  wash:   'Machine at cold temperature',
+  bleach: 'No bleach',
+  dry:    'Dry on low heat',
+  colors: 'Wash with similar colors',
+}
 const CARE_BY_LINE: Record<string, CareData> = {
-  polo_atelier: {
-    wash:     'Dry clean solamente',
-    iron:     'Temperatura baja, vapor',
-    store:    'Colgar, lejos de luz directa',
-    material: '100% lana italiana 16 mic',
-  },
-  signature: {
-    wash:     'Dry clean o lavado a mano',
-    iron:     'Temperatura media, sin vapor directo',
-    store:    'Colgar en funda de tela',
-    material: '95% algodón Pima, 5% elastano',
-  },
-  essential: {
-    wash:     'Lavado a máquina, frío',
-    iron:     'Temperatura baja',
-    store:    'Doblar, no colgar',
-    material: '100% algodón Pima 200g',
-  },
+  polo_atelier: STANDARD_CARE,
+  signature:    STANDARD_CARE,
+  essential:    STANDARD_CARE,
 }
 
 const RELATED_BY_LINE: Record<string, Array<{ line: string; href: string }>> = {
@@ -265,16 +255,13 @@ async function addToCart() {
               <!-- Placement Selection -->
               <div>
                 <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[#faf9f6]/60 mb-3">Placement</p>
-                <div class="grid grid-cols-3 gap-3">
-                  <button
-                    v-for="place in ['Chest (Left)', 'Chest (Right)', 'Back']" :key="place"
-                    @click="custPlacement = place"
-                    class="py-2.5 px-2 border text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] transition-colors text-center"
-                    :class="custPlacement === place ? 'border-[color:var(--color-amber-accent)] text-[#faf9f6] bg-[color:var(--color-amber-accent)]/10' : 'border-[#faf9f6]/10 text-[#faf9f6]/40 hover:text-[#faf9f6]/80'"
-                  >
-                    {{ place }}
-                  </button>
-                </div>
+                <button
+                  @click="custPlacement = 'Back'"
+                  class="w-full py-2.5 px-2 border text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] transition-colors text-center"
+                  :class="custPlacement === 'Back' ? 'border-[color:var(--color-amber-accent)] text-[#faf9f6] bg-[color:var(--color-amber-accent)]/10' : 'border-[#faf9f6]/10 text-[#faf9f6]/40 hover:text-[#faf9f6]/80'"
+                >
+                  Back
+                </button>
               </div>
 
               <!-- File Upload -->
@@ -359,7 +346,6 @@ async function addToCart() {
 
     <!-- PDP storytelling sections -->
     <CareInstructions :line-name="lineLabel" :care="currentCare" />
-    <ProductLookbook :line-name="lineLabel" />
     <RelatedProducts :related-lines="relatedLines" />
 
     <!-- Sticky Add to Cart — mobile only -->
@@ -384,7 +370,7 @@ async function addToCart() {
     </Teleport>
 
     <!-- Size guide modal -->
-    <SizeGuideModal :open="sizeGuideOpen" @close="sizeGuideOpen = false" />
+    <SizeGuideModal :open="sizeGuideOpen" :line="product?.line" @close="sizeGuideOpen = false" />
 
     <!-- Related products -->
     <section v-if="related.length" class="bg-[color:var(--color-warm-beige)] py-[var(--spacing-section)]">

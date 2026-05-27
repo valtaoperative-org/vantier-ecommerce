@@ -5,7 +5,6 @@ import ProductLineGrid from '../components/ProductLineGrid.vue'
 import FeaturedProducts from '../components/FeaturedProducts.vue'
 import BrandStatement from '../components/BrandStatement.vue'
 import ElProceso from '../components/ElProceso.vue'
-import NewsletterStrip from '../components/NewsletterStrip.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
 </script>
 <template>
@@ -16,7 +15,6 @@ import SeoHead from '@shared/components/SeoHead.vue'
   />
   <HeroCarousel />
   <BrandBreather />
-  <NewsletterStrip />
   <ProductLineGrid />
   <FeaturedProducts />
   <ElProceso />

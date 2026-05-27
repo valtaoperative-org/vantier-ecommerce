@@ -19,9 +19,9 @@ onMounted(() => {
     <!-- Left: image panel (40%) -->
     <div class="relative md:basis-2/5 h-64 md:h-auto bg-[color:var(--color-obsidian)] overflow-hidden flex-shrink-0">
       <img
-        src="/images/Products/signature-blazer-street.jpg"
-        alt="Vantier Signature"
-        class="absolute inset-0 w-full h-full object-cover opacity-80"
+        src="/images/Brand/LAimage.png"
+        alt="Los Angeles"
+        class="absolute inset-0 w-full h-full object-contain bg-[color:var(--color-obsidian)]"
       />
       <!-- Subtle dark gradient on right edge to blend into divider -->
       <div class="absolute inset-y-0 right-0 w-16 bg-gradient-to-r from-transparent to-[color:var(--color-obsidian)]/60 pointer-events-none" />

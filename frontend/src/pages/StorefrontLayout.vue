@@ -6,11 +6,24 @@ import CartDrawer from '@features/cart/components/CartDrawer.vue'
 import ToastContainer from '@shared/components/ToastContainer.vue'
 import AnnouncementBar from '@shared/components/AnnouncementBar.vue'
 import AppFooter from '@shared/components/AppFooter.vue'
+import { useToast } from '@shared/composables/useToast'
 
 const route = useRoute()
 const cart = useCartStore()
+const toast = useToast()
 const mobileMenuOpen = ref(false)
 const cartOpen = ref(false)
+
+const DISCOUNT_CODE = '15OFFROYALTY'
+
+async function copyDiscountCode() {
+  try {
+    await navigator.clipboard.writeText(DISCOUNT_CODE)
+    toast.show(`Code ${DISCOUNT_CODE} copied`, 'success')
+  } catch {
+    toast.show(`Use code ${DISCOUNT_CODE} at checkout`, 'default')
+  }
+}
 
 // Close mobile menu and cart drawer on route change
 watch(() => route.path, () => { mobileMenuOpen.value = false; cartOpen.value = false })
@@ -19,8 +32,6 @@ const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/shop', label: 'Shop' },
 ]
-
-const newsletterUrl = 'https://lasilentluxury.substack.com/'
 </script>
 <template>
   <div class="min-h-screen flex flex-col bg-[color:var(--color-surface)] text-[color:var(--color-on-surface)]">
@@ -138,26 +149,26 @@ const newsletterUrl = 'https://lasilentluxury.substack.com/'
     <CartDrawer :open="cartOpen" @close="cartOpen = false" />
   </Teleport>
 
-  <!-- Floating Newsletter Button -->
-  <a
-    :href="newsletterUrl"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="newsletter-float fixed bottom-6 right-6 z-40 group flex items-center gap-3 pl-6 pr-7 py-3 bg-[color:var(--color-amber-accent)] border border-[color:var(--color-amber-accent)] text-[color:var(--color-obsidian)] transition-all duration-300 hover:bg-[color:var(--color-obsidian)] hover:text-[color:var(--color-amber-accent)] hover:shadow-[0_0_24px_rgba(184,142,70,0.3)] hover:scale-[1.03]"
+  <!-- Floating Discount Button -->
+  <button
+    type="button"
+    @click="copyDiscountCode"
+    class="discount-float fixed bottom-6 right-6 z-40 group flex items-center gap-3 pl-6 pr-7 py-3 bg-[color:var(--color-amber-accent)] border border-[color:var(--color-amber-accent)] text-[color:var(--color-obsidian)] transition-all duration-300 hover:bg-[color:var(--color-obsidian)] hover:text-[color:var(--color-amber-accent)] hover:shadow-[0_0_24px_rgba(184,142,70,0.3)] hover:scale-[1.03]"
     style="border-radius: 2px;"
+    aria-label="Copy 15% discount code 15OFFROYALTY"
   >
-    <!-- Envelope icon -->
+    <!-- Tag icon -->
     <svg class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="2" y="4" width="20" height="16" rx="2"/>
-      <path d="m2 7 10 7 10-7" stroke-linecap="round"/>
+      <path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke-linejoin="round"/>
+      <circle cx="7" cy="7" r="1.2" fill="currentColor"/>
     </svg>
     <!-- Label -->
     <span class="text-[10px] font-semibold uppercase tracking-[0.2em] leading-none whitespace-nowrap">
-      Newsletter
+      15% Off First Purchase
       <span class="opacity-40 mx-1">·</span>
-      15% off
+      15OFFROYALTY
     </span>
-  </a>
+  </button>
 
   <!-- Toast notifications -->
   <ToastContainer />
@@ -186,8 +197,8 @@ const newsletterUrl = 'https://lasilentluxury.substack.com/'
 .page-enter-from { opacity: 0; transform: translateY(10px); }
 .page-leave-to  { opacity: 0; transform: translateY(-4px); }
 
-/* Floating newsletter button entrance */
-.newsletter-float {
+/* Floating discount button entrance */
+.discount-float {
   animation: float-in 600ms 800ms cubic-bezier(0.25, 0.1, 0.1, 1) both;
 }
 @keyframes float-in {

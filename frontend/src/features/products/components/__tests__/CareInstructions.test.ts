@@ -3,10 +3,10 @@ import { describe, it, expect } from 'vitest'
 import CareInstructions from '../CareInstructions.vue'
 
 const CARE_DATA = {
-  wash: 'Dry clean solamente',
-  iron: 'Temperatura baja, vapor',
-  store: 'Colgar, lejos de luz directa',
-  material: '100% lana italiana 16 mic',
+  wash:   'Machine at cold temperature',
+  bleach: 'No bleach',
+  dry:    'Dry on low heat',
+  colors: 'Wash with similar colors',
 }
 
 describe('CareInstructions', () => {
@@ -15,9 +15,9 @@ describe('CareInstructions', () => {
     expect(wrapper.findAll('[data-care-item]')).toHaveLength(4)
   })
 
-  it('displays the material', () => {
+  it('displays the wash instruction', () => {
     const wrapper = mount(CareInstructions, { props: { care: CARE_DATA, lineName: 'Polo Atelier' } })
-    expect(wrapper.text()).toContain('100% lana italiana 16 mic')
+    expect(wrapper.text()).toContain('Machine at cold temperature')
   })
 
   it('displays the line name in the header', () => {

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 export interface CareData {
   wash: string
-  iron: string
-  store: string
-  material: string
+  bleach: string
+  dry: string
+  colors: string
 }
 
 defineProps<{
@@ -12,10 +12,10 @@ defineProps<{
 }>()
 
 const CARE_ICONS = {
-  wash:     { symbol: '≋', label: 'Lavado'     },
-  iron:     { symbol: '◻', label: 'Planchado'  },
-  store:    { symbol: '∩', label: 'Almacenaje' },
-  material: { symbol: '⊞', label: 'Material'   },
+  wash:   { symbol: '≋', label: 'Wash'    },
+  bleach: { symbol: '⊘', label: 'Bleach'  },
+  dry:    { symbol: '◯', label: 'Dry'     },
+  colors: { symbol: '◐', label: 'Colors'  },
 } as const
 </script>
 
@@ -28,7 +28,7 @@ const CARE_ICONS = {
         {{ lineName }}
       </p>
       <h2 class="text-[length:var(--text-headline)] font-light uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-obsidian)] mb-3">
-        Cómo cuidar tu prenda
+        Garment Care
       </h2>
       <div class="w-7 h-px bg-[color:var(--color-amber-accent)] mb-12" />
 
@@ -57,7 +57,7 @@ const CARE_ICONS = {
       <div class="mt-10 pt-8 border-t border-[color:var(--color-obsidian)]/6 flex items-center gap-4">
         <div class="w-5 h-px bg-[color:var(--color-amber-accent)] flex-shrink-0" />
         <p class="text-[length:var(--text-micro)] text-[color:var(--color-obsidian)]/35 leading-relaxed">
-          Una prenda bien cuidada dura décadas. Esto no es moda de temporada — es una inversión en tu guardarropa permanente.
+          A well-cared garment lasts for decades. This is not seasonal fashion — it's an investment in your permanent wardrobe.
         </p>
       </div>
     </div>

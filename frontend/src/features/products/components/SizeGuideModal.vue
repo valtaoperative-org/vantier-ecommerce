@@ -1,15 +1,52 @@
 <script setup lang="ts">
-defineProps<{ open: boolean }>()
+import { computed } from 'vue'
+import type { ProductLine } from '../types'
+import { LINE_LABELS } from '../types'
+
+const props = defineProps<{ open: boolean; line?: ProductLine }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
-const measurements = [
-  { size: 'S',    chest: '36–38"', waist: '29–31"', hip: '36–38"' },
-  { size: 'M',    chest: '39–41"', waist: '32–34"', hip: '39–41"' },
-  { size: 'L',    chest: '42–44"', waist: '35–37"', hip: '42–44"' },
-  { size: 'XL',   chest: '45–47"', waist: '38–40"', hip: '45–47"' },
-  { size: 'XXL',  chest: '48–50"', waist: '41–43"', hip: '48–50"' },
-  { size: 'XXXL', chest: '51–53"', waist: '44–46"', hip: '51–53"' },
-]
+type Chart = {
+  columns: string[]
+  rows: (string | number)[][]
+}
+
+const CHARTS: Record<ProductLine, Chart> = {
+  essential: {
+    columns: ['Size', 'Chest', 'Length'],
+    rows: [
+      ['S', 92, 68],
+      ['M', 98, 72],
+      ['L', 108, 75],
+      ['XL', 116, 78],
+      ['XXL', 120, 80],
+    ],
+  },
+  signature: {
+    columns: ['Size', 'Chest', 'Shoulder', 'Length'],
+    rows: [
+      ['S', 105.99, 46.50, 74.98],
+      ['M', 112.97, 48.48, 76.98],
+      ['L', 121.99, 50.97, 78.99],
+      ['XL', 130.98, 53.49, 80.97],
+      ['XXL', 139.97, 55.98, 82.98],
+      ['XXXL', 150.24, 59.23, 86.23],
+    ],
+  },
+  polo_atelier: {
+    columns: ['Size', 'Chest', 'Shoulder', 'Length'],
+    rows: [
+      ['S', 110, 46, 65],
+      ['M', 114, 47, 67],
+      ['L', 118, 48, 69],
+      ['XL', 122, 49, 71],
+      ['XXL', 127, 50, 73],
+    ],
+  },
+}
+
+const chart = computed<Chart>(() => CHARTS[props.line ?? 'essential'] ?? CHARTS.essential)
+const lineTitle = computed(() => (props.line ? LINE_LABELS[props.line] : '') )
 </script>
 
 <template>
@@ -27,7 +64,7 @@ const measurements = [
         <div class="relative z-10 bg-[color:var(--color-surface)] w-full max-w-lg p-8">
           <div class="flex items-center justify-between mb-6">
             <div>
-              <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)] mb-1">Guide</p>
+              <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)] mb-1">{{ lineTitle || 'Guide' }}</p>
               <h2 class="text-[length:var(--text-title)] font-semibold tracking-[var(--tracking-headline)]">Size Guide</h2>
             </div>
             <button
@@ -42,29 +79,40 @@ const measurements = [
           </div>
 
           <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)] mb-5">
-            Measurements in inches. For best fit, measure your chest at its widest point.
+            Measurements in centimeters. For best fit, measure your chest at its widest point.
           </p>
 
           <div class="overflow-x-auto">
             <table class="w-full text-[length:var(--text-small)]">
               <thead>
                 <tr class="border-b border-[color:var(--color-border)]">
-                  <th class="py-2 pr-6 text-left text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-border-strong)]">Size</th>
-                  <th class="py-2 pr-6 text-left text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-border-strong)]">Chest</th>
-                  <th class="py-2 pr-6 text-left text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-border-strong)]">Waist</th>
-                  <th class="py-2 text-left text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-border-strong)]">Hip</th>
+                  <th
+                    v-for="(col, i) in chart.columns"
+                    :key="col"
+                    class="py-2 text-left text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-border-strong)]"
+                    :class="i < chart.columns.length - 1 ? 'pr-6' : ''"
+                  >
+                    {{ col }}
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  v-for="row in measurements"
-                  :key="row.size"
+                  v-for="row in chart.rows"
+                  :key="String(row[0])"
                   class="border-b border-[color:var(--color-border)] last:border-0"
                 >
-                  <td class="py-3 pr-6 font-medium text-[color:var(--color-on-surface)]">{{ row.size }}</td>
-                  <td class="py-3 pr-6 text-[color:var(--color-border-strong)]">{{ row.chest }}</td>
-                  <td class="py-3 pr-6 text-[color:var(--color-border-strong)]">{{ row.waist }}</td>
-                  <td class="py-3 text-[color:var(--color-border-strong)]">{{ row.hip }}</td>
+                  <td
+                    v-for="(cell, i) in row"
+                    :key="i"
+                    class="py-3"
+                    :class="[
+                      i < row.length - 1 ? 'pr-6' : '',
+                      i === 0 ? 'font-medium text-[color:var(--color-on-surface)]' : 'text-[color:var(--color-border-strong)]',
+                    ]"
+                  >
+                    {{ cell }}
+                  </td>
                 </tr>
               </tbody>
             </table>

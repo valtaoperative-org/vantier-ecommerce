@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const newsletterUrl = 'https://lasilentluxury.substack.com/'
 </script>
 
 <template>
@@ -45,24 +44,8 @@ const newsletterUrl = 'https://lasilentluxury.substack.com/'
         </nav>
       </div>
 
-      <!-- Right: Newsletter + social -->
+      <!-- Right: Social -->
       <div class="flex flex-col gap-6">
-        <div>
-          <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] opacity-40 mb-4">Stay in the know</p>
-          <a
-            :href="newsletterUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-newsletter-cta
-            class="inline-flex items-center gap-2 border border-[color:var(--color-ivory)]/30 px-5 py-2.5 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-ivory)] hover:border-[color:var(--color-amber-accent)] hover:text-[color:var(--color-amber-accent)] transition-colors duration-[var(--duration-normal)]"
-          >
-            Unirme al círculo
-            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-        </div>
-
         <!-- Social -->
         <div class="flex flex-col gap-3">
           <!-- Instagram -->
