@@ -72,7 +72,7 @@ dist/
 .DS_Store
 
 # Product images & zips (large binary assets managed outside git)
-frontend/public/images/
+frontend/public/images/Products/
 *.zip
 *.ZIP
 *.pyc

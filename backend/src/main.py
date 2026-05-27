@@ -4,6 +4,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from src.core.auth import warm_jwks
 from src.core.config import get_settings
@@ -41,6 +44,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Rate limiter
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
     # Exception handlers
     register_exception_handlers(app)
 
@@ -74,6 +82,9 @@ def create_app() -> FastAPI:
 
     from src.features.homepage.router import router as homepage_router
     app.include_router(homepage_router, prefix="/api/v1/homepage", tags=["Homepage"])
+
+    from src.features.uploads.router import router as uploads_router
+    app.include_router(uploads_router, prefix="/api/v1/uploads", tags=["Uploads"])
 
     @app.get("/health", tags=["Health"])
     async def health_check() -> dict:

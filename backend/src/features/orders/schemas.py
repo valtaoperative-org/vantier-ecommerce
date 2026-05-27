@@ -7,7 +7,8 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from src.core.config import get_settings
 
 
 # ── Input schemas ──────────────────────────────────────────────────────────────
@@ -17,6 +18,18 @@ class OrderItemCreate(BaseModel):
 
     variant_id: uuid.UUID
     qty: int = Field(..., gt=0)
+    customization_file_url: str | None = None
+    customization_placement: str | None = None
+
+    @field_validator("customization_file_url")
+    @classmethod
+    def validate_r2_url(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        allowed_prefix = get_settings().r2_public_url.rstrip("/")
+        if not v.startswith(allowed_prefix + "/"):
+            raise ValueError("customization_file_url must point to the R2 storage origin")
+        return v
 
 
 class ShippingAddressCreate(BaseModel):
@@ -56,6 +69,9 @@ class OrderItemResponse(BaseModel):
     variant_id: uuid.UUID
     qty: int
     unit_price_usd: Decimal
+    customization_fee_usd: Decimal
+    customization_file_url: str | None
+    customization_details: dict | None
 
 
 class OrderResponse(BaseModel):

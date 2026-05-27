@@ -16,6 +16,9 @@ export interface AdminOrderItem {
   variant_id: string
   qty: number
   unit_price_usd: string
+  customization_fee_usd: string
+  customization_file_url: string | null
+  customization_details: { placement?: string } | null
 }
 
 export interface AdminOrder {

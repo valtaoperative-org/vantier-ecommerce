@@ -77,8 +77,10 @@ async def create_order(
             )
 
     # ── 3. Compute subtotal ───────────────────────────────────────────────────
+    _CUSTOMIZATION_FEE = Decimal("30.00")
     subtotal_usd: Decimal = sum(
-        variants[item.variant_id].price_usd * item.qty for item in data.items
+        (variants[item.variant_id].price_usd + (_CUSTOMIZATION_FEE if item.customization_file_url else Decimal("0"))) * item.qty
+        for item in data.items
     )
     total_qty = sum(item.qty for item in data.items)
 
@@ -149,12 +151,18 @@ async def create_order(
 
     # ── 8. Create OrderItems (price frozen at order time) ─────────────────────
     for item in data.items:
+        if item.customization_placement and not item.customization_file_url:
+            raise ValueError(f"Item {item.variant_id}: placement set without a customization file URL")
         variant = variants[item.variant_id]
+        customization_fee = _CUSTOMIZATION_FEE if item.customization_file_url else Decimal("0.00")
         db.add(OrderItem(
             order_id=order.id,
             variant_id=item.variant_id,
             qty=item.qty,
             unit_price_usd=variant.price_usd,
+            customization_fee_usd=customization_fee,
+            customization_file_url=item.customization_file_url,
+            customization_details={"placement": item.customization_placement} if item.customization_placement else None,
         ))
 
     # ── 9. Create Stripe Checkout Session ─────────────────────────────────────
@@ -221,8 +229,10 @@ async def create_order_with_payment_intent(
             )
 
     # ── 3. Compute subtotal ───────────────────────────────────────────────────
+    _CUSTOMIZATION_FEE = Decimal("30.00")
     subtotal_usd: Decimal = sum(
-        variants[item.variant_id].price_usd * item.qty for item in data.items
+        (variants[item.variant_id].price_usd + (_CUSTOMIZATION_FEE if item.customization_file_url else Decimal("0"))) * item.qty
+        for item in data.items
     )
     total_qty = sum(item.qty for item in data.items)
 
@@ -290,12 +300,18 @@ async def create_order_with_payment_intent(
 
     # ── 8. Create OrderItems ──────────────────────────────────────────────────
     for item in data.items:
+        if item.customization_placement and not item.customization_file_url:
+            raise ValueError(f"Item {item.variant_id}: placement set without a customization file URL")
         variant = variants[item.variant_id]
+        customization_fee = _CUSTOMIZATION_FEE if item.customization_file_url else Decimal("0.00")
         db.add(OrderItem(
             order_id=order.id,
             variant_id=item.variant_id,
             qty=item.qty,
             unit_price_usd=variant.price_usd,
+            customization_fee_usd=customization_fee,
+            customization_file_url=item.customization_file_url,
+            customization_details={"placement": item.customization_placement} if item.customization_placement else None,
         ))
 
     # ── 9. Create Stripe PaymentIntent ────────────────────────────────────────

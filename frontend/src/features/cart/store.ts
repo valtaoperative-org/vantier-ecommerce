@@ -26,13 +26,18 @@ export const useCartStore = defineStore('cart', () => {
 
   const freeShipping = computed(() => totalItems.value >= 5)
 
-  // Persist to localStorage on every change
+  // Persist to localStorage — strip File objects (not JSON-serializable)
   watch(items, (val) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
+    const serializable = val.map(({ customizationFile: _drop, ...rest }) => rest)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serializable))
   }, { deep: true })
 
   function addItem(item: CartItem) {
-    const existing = items.value.find((i) => i.variantId === item.variantId)
+    if (item.isPersonalized) {
+      items.value.push(item)
+      return
+    }
+    const existing = items.value.find((i) => i.variantId === item.variantId && !i.isPersonalized)
     if (existing) {
       existing.quantity += item.quantity
     } else {

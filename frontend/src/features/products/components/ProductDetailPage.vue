@@ -62,7 +62,7 @@ function formatPrice(n: number) {
 const resolvedVariant = computed(() => variantSelector.value?.resolvedVariant ?? null)
 
 // --- Personalization Feature ---
-const CUSTOMIZATION_PRICE_USD = 25
+const CUSTOMIZATION_PRICE_USD = 30
 const isPersonalized = ref(false)
 const custPlacement = ref('')
 const custFile = ref<File | null>(null)
@@ -161,6 +161,7 @@ async function addToCart() {
     isPersonalized: isPersonalized.value,
     customizationPlacement: custPlacement.value,
     customizationFileUrl: custFilePreview.value,
+    customizationFile: custFile.value ?? undefined,
   })
   addState.value = 'success'
   toast.show('Added to cart', 'success')

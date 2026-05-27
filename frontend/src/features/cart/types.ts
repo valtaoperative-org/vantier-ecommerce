@@ -10,4 +10,5 @@ export interface CartItem {
   isPersonalized?: boolean
   customizationPlacement?: string
   customizationFileUrl?: string
+  customizationFile?: File
 }

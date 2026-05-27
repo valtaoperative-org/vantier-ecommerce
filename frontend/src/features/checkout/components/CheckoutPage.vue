@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useCheckoutStore } from '../store'
 import { useCartStore } from '@features/cart/store'
 import { createPaymentIntent } from '../api'
+import { uploadCustomizationFile } from '@features/uploads/api'
 import type { ShippingRate } from '../types'
 import CheckoutStepper from './CheckoutStepper.vue'
 import GuestEmailInput from './GuestEmailInput.vue'
@@ -41,16 +42,43 @@ function onNoRates() {
 }
 
 async function onShippingContinue() {
+  if (preparingPayment.value) return  // synchronous double-click guard
   if (!checkout.shippingRate || !addressData.value) return
   preparingPayment.value = true
   prepareError.value = ''
 
   const addr = addressData.value
   try {
+    const itemsPayload = await Promise.all(
+      cart.items.map(async (i) => {
+        if (i.isPersonalized) {
+          // File may be lost after page reload (not persisted to localStorage).
+          // If a fresh File is in memory, upload it. If only the preview URL exists
+          // (tab still open, no reload), the cart store has the File reference.
+          // If neither is available, surface an error so the user re-selects the file.
+          let url: string | null = null
+          if (i.customizationFile instanceof File) {
+            url = await uploadCustomizationFile(i.customizationFile)
+          } else if (i.customizationFileUrl && i.customizationFileUrl.startsWith('http')) {
+            url = i.customizationFileUrl
+          } else {
+            throw new Error(`Por favor vuelve al carrito y vuelve a seleccionar el archivo de personalización para "${i.name}".`)
+          }
+          return {
+            variant_id: i.variantId,
+            qty: i.quantity,
+            customization_file_url: url,
+            customization_placement: i.customizationPlacement ?? null,
+          }
+        }
+        return { variant_id: i.variantId, qty: i.quantity }
+      })
+    )
+
     const result = await createPaymentIntent({
       customer_email: guestEmail.value,
       customer_name: `${addr.firstName} ${addr.lastName}`,
-      items: cart.items.map(i => ({ variant_id: i.variantId, qty: i.quantity })),
+      items: itemsPayload,
       shipping_address: {
         full_name: `${addr.firstName} ${addr.lastName}`,
         line1: addr.address1,

@@ -4,6 +4,8 @@ import type { ShippingRate } from './types'
 export interface OrderItemPayload {
   variant_id: string
   qty: number
+  customization_file_url?: string | null
+  customization_placement?: string | null
 }
 
 export interface ShippingAddressPayload {
