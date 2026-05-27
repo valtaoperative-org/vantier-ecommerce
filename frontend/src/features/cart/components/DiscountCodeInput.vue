@@ -1,20 +1,30 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useCartStore } from '@features/cart/store'
+import { useCheckoutStore } from '@features/checkout/store'
+import { validateDiscount } from '@features/checkout/api'
 
-const code = ref('')
-const state = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
+const cartStore = useCartStore()
+const checkoutStore = useCheckoutStore()
+
+const code = ref(checkoutStore.discountCode || '')
+const state = ref<'idle' | 'loading' | 'success' | 'error'>(checkoutStore.discountCode ? 'success' : 'idle')
 const errorMessage = ref('')
 
 async function apply() {
   if (!code.value.trim()) return
   state.value = 'loading'
-  // TODO: wire to cartStore.applyDiscount(code) when API is ready
-  await new Promise((r) => setTimeout(r, 600))
-  if (code.value.toUpperCase() === 'VANTIER10') {
+  
+  try {
+    const data = await validateDiscount(code.value.trim(), cartStore.subtotal)
     state.value = 'success'
-  } else {
+    checkoutStore.discountCode = code.value.trim().toUpperCase()
+    checkoutStore.discountAmount = data.discount_amount_usd
+  } catch (err: any) {
     state.value = 'error'
-    errorMessage.value = 'Invalid or expired discount code'
+    checkoutStore.discountCode = null
+    checkoutStore.discountAmount = 0
+    errorMessage.value = err.response?.data?.detail || 'Invalid or expired discount code'
   }
 }
 
@@ -22,6 +32,8 @@ function reset() {
   code.value = ''
   state.value = 'idle'
   errorMessage.value = ''
+  checkoutStore.discountCode = null
+  checkoutStore.discountAmount = 0
 }
 </script>
 
@@ -54,7 +66,7 @@ function reset() {
       </button>
     </div>
     <p v-if="state === 'success'" class="mt-1.5 text-[length:var(--text-micro)] text-green-700">
-      Code applied — 10% off
+      Code applied
     </p>
     <p v-if="state === 'error'" class="mt-1.5 text-[length:var(--text-micro)] text-red-600">
       {{ errorMessage }}

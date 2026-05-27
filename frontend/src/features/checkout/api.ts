@@ -59,8 +59,8 @@ export async function createPaymentIntent(payload: OrderCreatePayload): Promise<
   return data
 }
 
-export async function validateDiscount(code: string): Promise<{ discountAmount: number }> {
-  const { data } = await apiClient.post('/discounts/validate', { code })
+export async function validateDiscount(code: string, subtotal: number): Promise<{ discount_amount_usd: number }> {
+  const { data } = await apiClient.post('/discounts/validate', { code, order_subtotal_usd: subtotal })
   return data
 }
 

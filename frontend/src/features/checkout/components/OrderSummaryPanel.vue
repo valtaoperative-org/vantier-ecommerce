@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useCartStore } from '@features/cart/store'
+import { useCheckoutStore } from '@features/checkout/store'
 import type { ShippingRate } from '../types'
 import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
 
 const props = defineProps<{ shippingRate?: ShippingRate | null }>()
 
 const cart = useCartStore()
-const total = computed(() => cart.subtotal + (props.shippingRate?.price_usd ?? 0))
+const checkout = useCheckoutStore()
+const total = computed(() => Math.max(0, cart.subtotal - checkout.discountAmount) + (props.shippingRate?.price_usd ?? 0))
 </script>
 
 <template>
@@ -36,6 +38,10 @@ const total = computed(() => cart.subtotal + (props.shippingRate?.price_usd ?? 0
       <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-on-surface)]">
         <span>Subtotal</span>
         <span>{{ formatUSD(cart.subtotal) }}</span>
+      </div>
+      <div v-if="checkout.discountAmount > 0" class="flex justify-between text-[length:var(--text-small)] text-green-700">
+        <span>Discount ({{ checkout.discountCode }})</span>
+        <span>-{{ formatUSD(checkout.discountAmount) }}</span>
       </div>
       <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
         <span>Shipping</span>
