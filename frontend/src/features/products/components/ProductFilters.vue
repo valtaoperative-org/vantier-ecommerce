@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ProductFilters } from '../types'
+import type { ProductFilters, ProductLine, ProductStyle } from '../types'
+import { LINE_LABELS, STYLE_LABELS } from '../types'
 
 const props = defineProps<{ modelValue: ProductFilters }>()
 const emit = defineEmits<{ 'update:modelValue': [ProductFilters] }>()
 
-const lines = ['Polo Atelier', 'Signature', 'Essential'] as const
-const styles = ['Classic', 'Design'] as const
+const lines = Object.entries(LINE_LABELS) as [ProductLine, string][]
+const styles = Object.entries(STYLE_LABELS) as [ProductStyle, string][]
 const sizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL']
 
 function toggle(key: keyof ProductFilters, value: string) {
@@ -24,13 +25,13 @@ function toggle(key: keyof ProductFilters, value: string) {
       <p class="text-[length:var(--text-micro)] font-medium uppercase tracking-[var(--tracking-label)] opacity-50 mb-3">Line</p>
       <div class="flex flex-col gap-2">
         <button
-          v-for="line in lines"
-          :key="line"
-          @click="toggle('line', line)"
+          v-for="[val, label] in lines"
+          :key="val"
+          @click="toggle('line', val)"
           class="text-left text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] transition-opacity duration-[var(--duration-fast)]"
-          :class="modelValue.line === line ? 'font-semibold opacity-100' : 'opacity-50 hover:opacity-80'"
+          :class="modelValue.line === val ? 'font-semibold opacity-100' : 'opacity-50 hover:opacity-80'"
         >
-          {{ line }}
+          {{ label }}
         </button>
       </div>
     </div>
@@ -39,15 +40,15 @@ function toggle(key: keyof ProductFilters, value: string) {
       <p class="text-[length:var(--text-micro)] font-medium uppercase tracking-[var(--tracking-label)] opacity-50 mb-3">Style</p>
       <div class="flex gap-2">
         <button
-          v-for="style in styles"
-          :key="style"
-          @click="toggle('style', style)"
+          v-for="[val, label] in styles"
+          :key="val"
+          @click="toggle('style', val)"
           class="px-3 py-1 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] border transition-colors duration-[var(--duration-fast)]"
-          :class="modelValue.style === style
+          :class="modelValue.style === val
             ? 'bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] border-[color:var(--color-obsidian)]'
             : 'border-[color:var(--color-border)] hover:border-[color:var(--color-border-strong)]'"
         >
-          {{ style }}
+          {{ label }}
         </button>
       </div>
     </div>
