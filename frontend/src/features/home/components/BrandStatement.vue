@@ -19,7 +19,7 @@ onMounted(() => {
     <!-- Left: image panel (40%) -->
     <div class="relative md:basis-2/5 h-64 md:h-auto bg-[color:var(--color-obsidian)] overflow-hidden flex-shrink-0">
       <img
-        src="/images/Brand/LAimage.png"
+        src="/images/Brand/LAimage.webp"
         alt="Los Angeles"
         class="absolute inset-0 w-full h-full object-contain bg-[color:var(--color-obsidian)]"
       />
