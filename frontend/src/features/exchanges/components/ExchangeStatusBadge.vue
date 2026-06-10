@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { ExchangeStatus } from '../types'
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
 
 defineProps<{ status: ExchangeStatus }>()
+const { t } = useI18n({ messages: accountMessages })
 
 const styles: Record<ExchangeStatus, string> = {
   requested: 'bg-amber-50 text-amber-700 border border-amber-200',
@@ -16,6 +19,6 @@ const styles: Record<ExchangeStatus, string> = {
     class="inline-flex items-center px-2.5 py-0.5 rounded-[var(--radius-pill)] text-[length:var(--text-micro)] font-medium uppercase tracking-[var(--tracking-label)]"
     :class="styles[status]"
   >
-    {{ status }}
+    {{ t(`exchanges.statuses.${status}`) }}
   </span>
 </template>

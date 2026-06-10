@@ -16,6 +16,8 @@ import RelatedProducts from './RelatedProducts.vue'
 import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
 import type { Product } from '../types'
 import { fetchProducts } from '../api'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
 
 type AddState = 'idle' | 'loading' | 'success'
 
@@ -23,6 +25,7 @@ const route = useRoute()
 const products = useProductsStore()
 const cart = useCartStore()
 const toast = useToast()
+const { t } = useI18n({ messages })
 
 const selectedColor = ref('')
 const selectedSize = ref('')
@@ -87,7 +90,7 @@ function onFileSelect(e: Event) {
   if (!target.files?.length) return
   const file = target.files[0]
   if (file.size > 5 * 1024 * 1024) {
-    toast.show('El archivo supera los 5MB limit', 'error')
+    toast.show(t('products.detail.fileTooLarge'), 'error')
     return
   }
   custFile.value = file
@@ -117,25 +120,28 @@ const canAdd = computed(() => {
 })
 
 // Care + related lines keyed by backend enum values
-const STANDARD_CARE: CareData = {
-  wash:   'Machine at cold temperature',
-  bleach: 'No bleach',
-  dry:    'Dry on low heat',
-  colors: 'Wash with similar colors',
-}
+const STANDARD_CARE = computed<CareData>(() => ({
+  wash: t('products.care.washValue'),
+  bleach: t('products.care.bleachValue'),
+  dry: t('products.care.dryValue'),
+  colors: t('products.care.colorsValue'),
+}))
 const CARE_BY_LINE: Record<string, CareData> = {
-  polo_atelier: STANDARD_CARE,
-  signature:    STANDARD_CARE,
-  essential:    STANDARD_CARE,
+  polo_atelier: STANDARD_CARE.value,
+  signature:    STANDARD_CARE.value,
+  essential:    STANDARD_CARE.value,
 }
 
-const currentCare = computed(() => CARE_BY_LINE[product.value?.line ?? ''] ?? CARE_BY_LINE['polo_atelier'])
+const currentCare = computed(() => {
+  const care = STANDARD_CARE.value
+  return product.value?.line in CARE_BY_LINE ? care : care
+})
 
 // Line + style display labels
-const lineLabel = computed(() => product.value ? (LINE_LABELS[product.value.line] ?? product.value.line) : '')
+const lineLabel = computed(() => product.value ? t(`products.labels.lines.${product.value.line}`, LINE_LABELS[product.value.line] ?? product.value.line) : '')
 const styleLabel = computed(() => {
   const s = allVariants.value[0]?.style
-  return s ? (STYLE_LABELS[s] ?? s) : ''
+  return s ? t(`products.labels.styles.${s}`, STYLE_LABELS[s] ?? s) : ''
 })
 
 async function addToCart() {
@@ -157,7 +163,7 @@ async function addToCart() {
     customizationFile: custFile.value ?? undefined,
   })
   addState.value = 'success'
-  toast.show('Added to cart', 'success')
+  toast.show(t('products.card.added'), 'success')
   setTimeout(() => (addState.value = 'idle'), 1800)
 }
 </script>
@@ -178,16 +184,16 @@ async function addToCart() {
   <template v-else-if="product">
     <SeoHead
       :title="`${product.name} — ${lineLabel} | Vantier`"
-      :description="`${product.name}. ${lineLabel} line. Free shipping on 5+ items.`"
+      :description="t('products.seo.detailDescription', { name: product.name, line: lineLabel })"
       og-type="product"
     />
 
     <!-- Breadcrumb -->
     <nav class="max-w-[var(--container-max)] mx-auto px-[var(--spacing-container)] pt-6 pb-2">
       <ol class="flex items-center gap-2 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)]">
-        <li><RouterLink to="/" class="hover:text-[color:var(--color-obsidian)] transition-colors">Home</RouterLink></li>
+        <li><RouterLink to="/" class="hover:text-[color:var(--color-obsidian)] transition-colors">{{ t('products.detail.home') }}</RouterLink></li>
         <li class="opacity-40">/</li>
-        <li><RouterLink to="/shop" class="hover:text-[color:var(--color-obsidian)] transition-colors">Shop</RouterLink></li>
+        <li><RouterLink to="/shop" class="hover:text-[color:var(--color-obsidian)] transition-colors">{{ t('products.detail.shop') }}</RouterLink></li>
         <li class="opacity-40">/</li>
         <li class="text-[color:var(--color-obsidian)]">{{ product.name }}</li>
       </ol>
@@ -236,9 +242,9 @@ async function addToCart() {
             <div class="flex items-center justify-between cursor-pointer" @click="isPersonalized = !isPersonalized">
               <div>
                 <h3 class="text-[length:var(--text-small)] uppercase tracking-[var(--tracking-headline)] font-medium text-[#faf9f6]">
-                  Personalize Garment
+                  {{ t('products.detail.personalize') }}
                 </h3>
-                <p class="text-[length:var(--text-micro)] text-[#faf9f6] opacity-60 mt-1">Upload your design (+{{ formatPrice(CUSTOMIZATION_PRICE_USD) }})</p>
+                <p class="text-[length:var(--text-micro)] text-[#faf9f6] opacity-60 mt-1">{{ t('products.detail.uploadDesign', { price: formatPrice(CUSTOMIZATION_PRICE_USD) }) }}</p>
               </div>
               <div class="w-10 h-6 rounded-full border border-[color:var(--color-obsidian)] bg-[#1a1714] p-1 flex items-center transition-all duration-300" :class="{ 'bg-[color:var(--color-obsidian)] border-[color:var(--color-amber-accent)]': isPersonalized }">
                 <div class="w-4 h-4 bg-white rounded-full transition-all duration-300 transform" :class="isPersonalized ? 'translate-x-4 bg-[color:var(--color-amber-accent)]' : 'opacity-40'"></div>
@@ -248,19 +254,19 @@ async function addToCart() {
             <div v-if="isPersonalized" class="mt-6 pt-6 border-t border-[color:var(--color-border)]/20 animate-fade-in space-y-5">
               <!-- Placement Selection -->
               <div>
-                <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[#faf9f6]/60 mb-3">Placement</p>
+                <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[#faf9f6]/60 mb-3">{{ t('products.detail.placement') }}</p>
                 <button
                   @click="custPlacement = 'Back'"
                   class="w-full py-2.5 px-2 border text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] transition-colors text-center"
                   :class="custPlacement === 'Back' ? 'border-[color:var(--color-amber-accent)] text-[#faf9f6] bg-[color:var(--color-amber-accent)]/10' : 'border-[#faf9f6]/10 text-[#faf9f6]/40 hover:text-[#faf9f6]/80'"
                 >
-                  Back
+                  {{ t('products.detail.back') }}
                 </button>
               </div>
 
               <!-- File Upload -->
               <div>
-                <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[#faf9f6]/60 mb-3">Design File (PNG, SVG)</p>
+                <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[#faf9f6]/60 mb-3">{{ t('products.detail.designFile') }}</p>
                 <div class="relative border-2 border-dashed border-[#faf9f6]/10 hover:border-[#faf9f6]/30 transition-colors bg-[#1a1714] p-6 text-center cursor-pointer group flex flex-col items-center justify-center min-h-[120px]">
                   <input type="file" accept=".png,.svg,.jpg,.jpeg" @change="onFileSelect" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
 
@@ -271,17 +277,17 @@ async function addToCart() {
                            <polyline points="20 6 9 17 4 12"/>
                          </svg>
                       </div>
-                      <button class="absolute -top-3 -right-3 sm:-right-8 bg-red-500/20 text-red-500 w-6 h-6 rounded-full flex items-center justify-center shadow-sm hover:bg-red-500/40 transition-colors z-20" @click.stop="[custFile = null, custFilePreview = '']">×</button>
+                      <button :aria-label="t('products.detail.removeFile')" class="absolute -top-3 -right-3 sm:-right-8 bg-red-500/20 text-red-500 w-6 h-6 rounded-full flex items-center justify-center shadow-sm hover:bg-red-500/40 transition-colors z-20" @click.stop="[custFile = null, custFilePreview = '']">×</button>
                     </div>
                     <p class="text-[length:var(--text-small)] font-medium text-[#faf9f6]">{{ custFile?.name }}</p>
-                    <p class="text-[length:var(--text-micro)] text-[#faf9f6]/40 mt-1">Tap to replace file</p>
+                    <p class="text-[length:var(--text-micro)] text-[#faf9f6]/40 mt-1">{{ t('products.detail.replaceFile') }}</p>
                   </template>
                   <template v-else>
                     <svg class="w-6 h-6 mb-3 text-[#faf9f6]/30 group-hover:text-[color:var(--color-amber-accent)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    <p class="text-[length:var(--text-small)] text-[#faf9f6]/80">Drag and drop or click to upload</p>
-                    <p class="text-[length:var(--text-micro)] text-[#faf9f6]/40 mt-1">High-res PNG or SVG • Max 5MB</p>
+                    <p class="text-[length:var(--text-small)] text-[#faf9f6]/80">{{ t('products.detail.upload') }}</p>
+                    <p class="text-[length:var(--text-micro)] text-[#faf9f6]/40 mt-1">{{ t('products.detail.uploadHint') }}</p>
                   </template>
                 </div>
               </div>
@@ -293,7 +299,7 @@ async function addToCart() {
             class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] underline text-[color:var(--color-border-strong)] hover:text-[color:var(--color-obsidian)] transition-colors w-fit"
             @click="sizeGuideOpen = true"
           >
-            Size Guide
+            {{ t('products.detail.sizeGuide') }}
           </button>
 
           <!-- Add to cart CTA -->
@@ -313,12 +319,12 @@ async function addToCart() {
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
               <span>
-                {{ addState === 'success' ? 'Added to Cart' : addState === 'loading' ? 'Adding…' : !selectedColor ? 'Select a Color' : !selectedSize ? 'Select a Size' : 'Add to Cart' }}
+                {{ addState === 'success' ? t('products.detail.added') : addState === 'loading' ? t('products.detail.adding') : !selectedColor ? t('products.detail.selectColor') : !selectedSize ? t('products.detail.selectSize') : t('products.detail.add') }}
               </span>
             </button>
 
             <p class="text-center text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
-              Free shipping on 5+ items
+              {{ t('products.detail.shipping') }}
             </p>
           </div>
 
@@ -331,8 +337,8 @@ async function addToCart() {
 
           <!-- Exchange policy -->
           <div class="border-t border-[color:var(--color-border)] pt-4 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)] space-y-1">
-            <p>Same-line exchanges · No returns</p>
-            <p>Ships within 3–5 business days</p>
+            <p>{{ t('products.detail.exchanges') }}</p>
+            <p>{{ t('products.detail.ships') }}</p>
           </div>
         </div>
       </div>
@@ -358,7 +364,7 @@ async function addToCart() {
           @click="addToCart"
         >
           <span v-if="addState === 'loading'" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          {{ addState === 'loading' ? 'Adding…' : 'Add to Cart' }}
+          {{ addState === 'loading' ? t('products.detail.adding') : t('products.detail.add') }}
         </button>
       </div>
     </Teleport>

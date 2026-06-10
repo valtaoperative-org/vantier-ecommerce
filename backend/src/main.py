@@ -2,7 +2,7 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -85,6 +85,23 @@ def create_app() -> FastAPI:
 
     from src.features.uploads.router import router as uploads_router
     app.include_router(uploads_router, prefix="/api/v1/uploads", tags=["Uploads"])
+
+    @app.get("/api/v1/geo", tags=["Localization"])
+    async def detect_country(request: Request) -> dict[str, str]:
+        """Return the country code supplied by the deployment edge."""
+        country_code = next(
+            (
+                request.headers.get(header)
+                for header in (
+                    "cf-ipcountry",
+                    "x-vercel-ip-country",
+                    "cloudfront-viewer-country",
+                )
+                if request.headers.get(header)
+            ),
+            "US",
+        )
+        return {"country_code": country_code.upper()}
 
     @app.get("/health", tags=["Health"])
     async def health_check() -> dict:

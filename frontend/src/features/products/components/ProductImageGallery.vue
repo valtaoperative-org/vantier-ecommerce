@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { ProductImage } from '../types'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const props = defineProps<{ images: ProductImage[] }>()
 
@@ -67,21 +70,21 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
 
       <!-- No image placeholder -->
       <div v-else class="w-full h-full flex items-center justify-center">
-        <span class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)]">No image</span>
+        <span class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)]">{{ t('products.gallery.noImage') }}</span>
       </div>
 
       <!-- Prev / Next -->
       <template v-if="images.length > 1">
         <button
           class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-[color:var(--color-ivory)]/80 backdrop-blur-sm flex items-center justify-center hover:bg-[color:var(--color-ivory)] transition-colors duration-[var(--duration-fast)]"
-          aria-label="Previous image"
+          :aria-label="t('products.gallery.previous')"
           @click.stop="prev"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <button
           class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-[color:var(--color-ivory)]/80 backdrop-blur-sm flex items-center justify-center hover:bg-[color:var(--color-ivory)] transition-colors duration-[var(--duration-fast)]"
-          aria-label="Next image"
+          :aria-label="t('products.gallery.next')"
           @click.stop="next"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -91,7 +94,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
       <!-- Count pill + zoom hint -->
       <div class="absolute bottom-3 left-0 right-0 flex items-center justify-between px-3 pointer-events-none">
         <span class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-ivory)]/60 bg-[color:var(--color-obsidian)]/40 backdrop-blur-sm px-2 py-0.5">
-          Tap to zoom
+          {{ t('products.gallery.zoom') }}
         </span>
         <span v-if="images.length > 1" class="bg-[color:var(--color-obsidian)]/60 text-[color:var(--color-ivory)] text-[10px] tracking-widest px-2 py-0.5">
           {{ activeIndex + 1 }} / {{ images.length }}
@@ -108,7 +111,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
         :class="i === activeIndex
           ? 'outline outline-2 outline-offset-1 outline-[color:var(--color-obsidian)]'
           : 'outline outline-1 outline-transparent hover:outline-[color:var(--color-border-strong)]'"
-        :aria-label="`View image ${i + 1}`"
+        :aria-label="t('products.gallery.view', { number: i + 1 })"
         @click="selectImage(i)"
       >
         <img :src="img.url" :alt="img.alt_text ?? ''" class="w-full h-full object-cover" />
@@ -126,7 +129,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
       >
         <button
           class="absolute top-5 right-5 w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors duration-[var(--duration-fast)]"
-          aria-label="Close lightbox"
+          :aria-label="t('products.gallery.close')"
           @click="closeLightbox"
         >
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -145,14 +148,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
         <template v-if="images.length > 1">
           <button
             class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-white/50 hover:text-white border border-white/10 hover:border-white/30 transition-all duration-[var(--duration-fast)]"
-            aria-label="Previous image"
+            :aria-label="t('products.gallery.previous')"
             @click="lbPrev"
           >
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <button
             class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-white/50 hover:text-white border border-white/10 hover:border-white/30 transition-all duration-[var(--duration-fast)]"
-            aria-label="Next image"
+            :aria-label="t('products.gallery.next')"
             @click="lbNext"
           >
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>

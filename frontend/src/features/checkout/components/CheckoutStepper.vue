@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import type { CheckoutStep } from '../types'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 defineProps<{ currentStep: CheckoutStep }>()
 
-const steps: { key: CheckoutStep; label: string }[] = [
-  { key: 'address', label: 'Address' },
-  { key: 'shipping', label: 'Shipping' },
-  { key: 'payment', label: 'Payment' },
-]
+const { t } = useI18n({ messages: checkoutMessages })
+const steps = computed<{ key: CheckoutStep; label: string }[]>(() => [
+  { key: 'address', label: t('checkout.steps.address') },
+  { key: 'shipping', label: t('checkout.steps.shipping') },
+  { key: 'payment', label: t('checkout.steps.payment') },
+])
 
 const order: CheckoutStep[] = ['address', 'shipping', 'payment', 'confirmation']
 
@@ -20,7 +24,7 @@ function isActive(key: CheckoutStep, current: CheckoutStep) {
 </script>
 
 <template>
-  <nav aria-label="Checkout steps" class="flex items-center gap-0 mb-10">
+  <nav :aria-label="t('checkout.steps.label')" class="flex items-center gap-0 mb-10">
     <template v-for="(step, i) in steps" :key="step.key">
       <div class="flex items-center gap-2">
         <!-- Circle -->

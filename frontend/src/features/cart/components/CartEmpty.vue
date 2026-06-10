@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
+const { t } = useI18n({ messages: checkoutMessages })
 </script>
 
 <template>
@@ -12,16 +15,16 @@ import { RouterLink } from 'vue-router'
       </svg>
     </div>
     <p class="text-[length:var(--text-small)] tracking-[var(--tracking-label)] uppercase text-[color:var(--color-on-surface)] mb-2">
-      Your cart is empty
+      {{ t('cart.empty') }}
     </p>
     <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)] mb-8">
-      Discover our curated collection
+      {{ t('cart.discover') }}
     </p>
     <RouterLink
       to="/shop"
       class="px-8 py-3 bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] text-[length:var(--text-small)] tracking-[var(--tracking-label)] uppercase hover:opacity-80 transition-opacity duration-[var(--duration-normal)]"
     >
-      Shop the Collection
+      {{ t('cart.shopCollection') }}
     </RouterLink>
   </div>
 </template>

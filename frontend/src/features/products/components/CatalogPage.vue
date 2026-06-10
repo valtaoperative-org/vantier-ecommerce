@@ -7,6 +7,9 @@ import ProductGrid from './ProductGrid.vue'
 import ProductFiltersPanel from './ProductFilters.vue'
 import MobileFilterDrawer from './MobileFilterDrawer.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const route = useRoute()
 const router = useRouter()
@@ -39,13 +42,13 @@ onMounted(() => {
 
 <template>
   <SeoHead
-    title="Shop Vantier Menswear — Polo Atelier, Signature, Essential"
-    description="Browse the full Vantier collection. Filter by line, style, size, and color."
+    :title="t('products.seo.catalogTitle')"
+    :description="t('products.seo.catalogDescription')"
     canonical="https://vantierluxuryla.com/shop"
   />
   <div class="max-w-[var(--container-max)] mx-auto px-[var(--spacing-container)] py-16">
     <h1 class="text-[length:var(--text-headline)] font-light uppercase tracking-[var(--tracking-headline)] mb-12">
-      The Collection
+      {{ t('products.catalog.title') }}
     </h1>
     <div class="flex gap-12">
       <!-- Sidebar (desktop only) -->
@@ -68,7 +71,7 @@ onMounted(() => {
       <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
       </svg>
-      Filter
+      {{ t('products.catalog.filter') }}
       <span
         v-if="activeFilterCount > 0"
         class="ml-0.5 w-4 h-4 rounded-full bg-[color:var(--color-amber-accent)] text-[color:var(--color-obsidian)] text-[10px] font-bold flex items-center justify-center"

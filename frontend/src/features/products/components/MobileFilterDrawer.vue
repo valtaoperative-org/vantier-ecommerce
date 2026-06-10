@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import ProductFiltersPanel from './ProductFilters.vue'
 import type { ProductFilters } from '../types'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const props = defineProps<{ open: boolean; modelValue: ProductFilters }>()
 const emit = defineEmits<{
@@ -25,7 +28,7 @@ const emit = defineEmits<{
       v-if="props.open"
       class="fixed bottom-0 left-0 right-0 z-50 bg-[color:var(--color-surface)] rounded-t-[1rem] shadow-2xl max-h-[80vh] flex flex-col"
       role="dialog"
-      aria-label="Product filters"
+      :aria-label="t('products.filters.dialog')"
       aria-modal="true"
     >
       <!-- Handle bar -->
@@ -36,11 +39,11 @@ const emit = defineEmits<{
       <!-- Header -->
       <div class="flex items-center justify-between px-6 py-4 border-b border-[color:var(--color-border)] shrink-0">
         <h2 class="text-[length:var(--text-small)] font-medium uppercase tracking-[var(--tracking-label)]">
-          Filter
+          {{ t('products.catalog.filter') }}
         </h2>
         <button
           class="w-8 h-8 flex items-center justify-center opacity-50 hover:opacity-100 transition-opacity duration-[var(--duration-fast)]"
-          aria-label="Close filters"
+          :aria-label="t('products.filters.close')"
           @click="emit('close')"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -63,7 +66,7 @@ const emit = defineEmits<{
           class="w-full py-3.5 bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] text-[length:var(--text-small)] font-medium uppercase tracking-[var(--tracking-label)] hover:opacity-80 transition-opacity duration-[var(--duration-fast)]"
           @click="emit('close')"
         >
-          Apply Filters
+          {{ t('products.filters.apply') }}
         </button>
       </div>
     </div>

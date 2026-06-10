@@ -3,11 +3,14 @@ import { useCartStore } from '@features/cart/store'
 import CartItem from './CartItem.vue'
 import CartSummary from './CartSummary.vue'
 import CartEmpty from './CartEmpty.vue'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
 const cart = useCartStore()
+const { t } = useI18n({ messages: checkoutMessages })
 </script>
 
 <template>
@@ -26,18 +29,18 @@ const cart = useCartStore()
       v-if="props.open"
       class="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-[color:var(--color-surface)] flex flex-col shadow-2xl"
       role="dialog"
-      aria-label="Shopping cart"
+      :aria-label="t('cart.dialog')"
       aria-modal="true"
     >
       <!-- Header -->
       <div class="flex items-center justify-between px-6 py-5 border-b border-[color:var(--color-border)]">
         <h2 class="text-[length:var(--text-small)] tracking-[var(--tracking-label)] uppercase font-medium text-[color:var(--color-on-surface)]">
-          Cart
+          {{ t('cart.title') }}
           <span v-if="cart.totalItems > 0" class="ml-2 text-[color:var(--color-border-strong)]">({{ cart.totalItems }})</span>
         </h2>
         <button
           class="w-8 h-8 flex items-center justify-center text-[color:var(--color-on-surface)] hover:opacity-60 transition-opacity duration-[var(--duration-fast)]"
-          aria-label="Close cart"
+          :aria-label="t('cart.close')"
           @click="emit('close')"
         >
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

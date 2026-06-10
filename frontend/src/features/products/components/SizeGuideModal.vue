@@ -2,6 +2,9 @@
 import { computed } from 'vue'
 import type { ProductLine } from '../types'
 import { LINE_LABELS } from '../types'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const props = defineProps<{ open: boolean; line?: ProductLine }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
@@ -13,7 +16,7 @@ type Chart = {
 
 const CHARTS: Record<ProductLine, Chart> = {
   essential: {
-    columns: ['Size', 'Chest', 'Length'],
+    columns: ['size', 'chest', 'length'],
     rows: [
       ['S', 92, 68],
       ['M', 98, 72],
@@ -23,7 +26,7 @@ const CHARTS: Record<ProductLine, Chart> = {
     ],
   },
   signature: {
-    columns: ['Size', 'Chest', 'Shoulder', 'Length'],
+    columns: ['size', 'chest', 'shoulder', 'length'],
     rows: [
       ['S', 105.99, 46.50, 74.98],
       ['M', 112.97, 48.48, 76.98],
@@ -34,7 +37,7 @@ const CHARTS: Record<ProductLine, Chart> = {
     ],
   },
   polo_atelier: {
-    columns: ['Size', 'Chest', 'Shoulder', 'Length'],
+    columns: ['size', 'chest', 'shoulder', 'length'],
     rows: [
       ['S', 110, 46, 65],
       ['M', 114, 47, 67],
@@ -46,7 +49,9 @@ const CHARTS: Record<ProductLine, Chart> = {
 }
 
 const chart = computed<Chart>(() => CHARTS[props.line ?? 'essential'] ?? CHARTS.essential)
-const lineTitle = computed(() => (props.line ? LINE_LABELS[props.line] : '') )
+const lineTitle = computed(() => props.line
+  ? t(`products.labels.lines.${props.line}`, LINE_LABELS[props.line])
+  : '')
 </script>
 
 <template>
@@ -64,12 +69,12 @@ const lineTitle = computed(() => (props.line ? LINE_LABELS[props.line] : '') )
         <div class="relative z-10 bg-[color:var(--color-surface)] w-full max-w-lg p-8">
           <div class="flex items-center justify-between mb-6">
             <div>
-              <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)] mb-1">{{ lineTitle || 'Guide' }}</p>
-              <h2 class="text-[length:var(--text-title)] font-semibold tracking-[var(--tracking-headline)]">Size Guide</h2>
+              <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)] mb-1">{{ lineTitle || t('products.sizeGuide.guide') }}</p>
+              <h2 class="text-[length:var(--text-title)] font-semibold tracking-[var(--tracking-headline)]">{{ t('products.sizeGuide.title') }}</h2>
             </div>
             <button
               class="w-8 h-8 flex items-center justify-center text-[color:var(--color-border-strong)] hover:text-[color:var(--color-obsidian)] transition-colors"
-              aria-label="Close size guide"
+              :aria-label="t('products.sizeGuide.close')"
               @click="emit('close')"
             >
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -79,7 +84,7 @@ const lineTitle = computed(() => (props.line ? LINE_LABELS[props.line] : '') )
           </div>
 
           <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)] mb-5">
-            Measurements in centimeters. For best fit, measure your chest at its widest point.
+            {{ t('products.sizeGuide.instructions') }}
           </p>
 
           <div class="overflow-x-auto">
@@ -92,7 +97,7 @@ const lineTitle = computed(() => (props.line ? LINE_LABELS[props.line] : '') )
                     class="py-2 text-left text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-border-strong)]"
                     :class="i < chart.columns.length - 1 ? 'pr-6' : ''"
                   >
-                    {{ col }}
+                    {{ t(`products.sizeGuide.columns.${col}`) }}
                   </th>
                 </tr>
               </thead>

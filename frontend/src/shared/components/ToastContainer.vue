@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useToast } from '@shared/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const { toasts, dismiss } = useToast()
+const { t } = useI18n()
 
 const icons = {
   default: '',
@@ -21,7 +23,7 @@ const styles = {
     <div
       class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none"
       aria-live="polite"
-      aria-label="Notifications"
+      :aria-label="t('shared.notifications')"
     >
       <TransitionGroup name="toast">
         <div

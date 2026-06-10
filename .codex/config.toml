@@ -1,0 +1,6 @@
+[mcp_servers.symdex]
+command = "uvx"
+args = [
+    "symdex",
+    "serve",
+]

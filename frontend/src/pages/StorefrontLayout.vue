@@ -6,11 +6,14 @@ import CartDrawer from '@features/cart/components/CartDrawer.vue'
 import ToastContainer from '@shared/components/ToastContainer.vue'
 import AnnouncementBar from '@shared/components/AnnouncementBar.vue'
 import AppFooter from '@shared/components/AppFooter.vue'
+import LocaleSelector from '@shared/components/LocaleSelector.vue'
 import { useToast } from '@shared/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
 const route = useRoute()
 const cart = useCartStore()
 const toast = useToast()
+const { t } = useI18n()
 const mobileMenuOpen = ref(false)
 const cartOpen = ref(false)
 
@@ -19,9 +22,9 @@ const DISCOUNT_CODE = '15OFFROYALTY'
 async function copyDiscountCode() {
   try {
     await navigator.clipboard.writeText(DISCOUNT_CODE)
-    toast.show(`Code ${DISCOUNT_CODE} copied`, 'success')
+    toast.show(t('shared.discount.copied', { code: DISCOUNT_CODE }), 'success')
   } catch {
-    toast.show(`Use code ${DISCOUNT_CODE} at checkout`, 'default')
+    toast.show(t('shared.discount.fallback', { code: DISCOUNT_CODE }), 'default')
   }
 }
 
@@ -29,8 +32,8 @@ async function copyDiscountCode() {
 watch(() => route.path, () => { mobileMenuOpen.value = false; cartOpen.value = false })
 
 const navLinks = [
-  { to: '/', label: 'Home' },
-  { to: '/shop', label: 'Shop' },
+  { to: '/', labelKey: 'navigation.home' },
+  { to: '/shop', labelKey: 'navigation.shop' },
 ]
 </script>
 <template>
@@ -43,7 +46,7 @@ const navLinks = [
       <div class="relative max-w-[var(--container-max)] mx-auto px-[var(--spacing-container)] h-16 flex items-center justify-between">
 
         <!-- Left: Desktop nav links -->
-        <nav class="hidden md:flex items-center gap-8" aria-label="Main navigation">
+        <nav class="hidden md:flex items-center gap-8" :aria-label="t('shared.navigation.main')">
           <RouterLink
             v-for="link in navLinks"
             :key="link.to"
@@ -51,7 +54,7 @@ const navLinks = [
             class="text-[length:var(--text-small)] font-medium uppercase tracking-[var(--tracking-label)] text-[color:var(--color-ivory)]/50 hover:text-[color:var(--color-ivory)] relative after:absolute after:bottom-0 after:left-0 after:h-px after:bg-[color:var(--color-ivory)] after:transition-[width] after:duration-[var(--duration-normal)] after:ease-[var(--ease-out-expo)] hover:after:w-full transition-colors duration-[var(--duration-fast)]"
             :class="$route.path === link.to ? 'text-[color:var(--color-ivory)] after:w-full' : 'after:w-0'"
           >
-            {{ link.label }}
+            {{ t(link.labelKey) }}
           </RouterLink>
         </nav>
 
@@ -59,7 +62,7 @@ const navLinks = [
         <RouterLink
           to="/"
           class="absolute left-1/2 -translate-x-1/2 hover:opacity-70 transition-opacity duration-[var(--duration-fast)]"
-          aria-label="Vantier — Home"
+          :aria-label="t('shared.navigation.logoHome')"
         >
           <img
             src="/Logos y tipografia/LOGOTIPO BLANCO VANTIER.svg"
@@ -70,9 +73,10 @@ const navLinks = [
 
         <!-- Right actions -->
         <div class="flex items-center gap-4 ml-auto">
+          <LocaleSelector />
 
           <!-- Cart icon -->
-          <button class="relative p-2 hover:opacity-70 transition-opacity duration-[var(--duration-fast)] text-[color:var(--color-ivory)]" aria-label="Open cart" @click="cartOpen = true">
+          <button class="relative p-2 hover:opacity-70 transition-opacity duration-[var(--duration-fast)] text-[color:var(--color-ivory)]" :aria-label="t('navigation.openCart')" @click="cartOpen = true">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
             </svg>
@@ -90,7 +94,7 @@ const navLinks = [
           <!-- Hamburger (mobile only) -->
           <button
             class="md:hidden p-2 hover:opacity-70 transition-opacity duration-[var(--duration-fast)] text-[color:var(--color-ivory)]"
-            :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+            :aria-label="mobileMenuOpen ? t('navigation.closeMenu') : t('navigation.openMenu')"
             :aria-expanded="mobileMenuOpen"
             @click="mobileMenuOpen = !mobileMenuOpen"
           >
@@ -113,7 +117,7 @@ const navLinks = [
         <nav
           v-if="mobileMenuOpen"
           class="md:hidden border-t border-[color:var(--color-amber-accent)]/10 bg-[color:var(--color-obsidian)] px-[var(--spacing-container)] py-6 flex flex-col gap-5"
-          aria-label="Mobile navigation"
+          :aria-label="t('shared.navigation.mobile')"
         >
           <RouterLink
             v-for="link in navLinks"
@@ -122,7 +126,7 @@ const navLinks = [
             class="text-[length:var(--text-title)] font-light uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-ivory)] hover:opacity-60 transition-opacity duration-[var(--duration-fast)]"
             :class="{ 'opacity-40': $route.path !== link.to }"
           >
-            {{ link.label }}
+            {{ t(link.labelKey) }}
           </RouterLink>
 
         </nav>
@@ -155,7 +159,7 @@ const navLinks = [
     @click="copyDiscountCode"
     class="discount-float fixed bottom-6 right-6 z-40 group flex items-center gap-3 pl-6 pr-7 py-3 bg-[color:var(--color-amber-accent)] border border-[color:var(--color-amber-accent)] text-[color:var(--color-obsidian)] transition-all duration-300 hover:bg-[color:var(--color-obsidian)] hover:text-[color:var(--color-amber-accent)] hover:shadow-[0_0_24px_rgba(184,142,70,0.3)] hover:scale-[1.03]"
     style="border-radius: 2px;"
-    aria-label="Copy 15% discount code 15OFFROYALTY"
+    :aria-label="t('shared.discount.copy', { code: DISCOUNT_CODE })"
   >
     <!-- Tag icon -->
     <svg class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -164,7 +168,7 @@ const navLinks = [
     </svg>
     <!-- Label -->
     <span class="text-[10px] font-semibold uppercase tracking-[0.2em] leading-none whitespace-nowrap">
-      15% Off First Purchase
+      {{ t('shared.discount.label') }}
       <span class="opacity-40 mx-1">·</span>
       15OFFROYALTY
     </span>

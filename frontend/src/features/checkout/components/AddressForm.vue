@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, markRaw } from 'vue'
+import { nextTick, onMounted, ref, markRaw, computed } from 'vue'
 import { useForm } from 'vee-validate'
 import { toTypedSchema } from '@vee-validate/zod'
 import { z } from 'zod'
 import { VueTelInput } from 'vue-tel-input'
 import 'vue-tel-input/vue-tel-input.css'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 const emit = defineEmits<{ (e: 'submit', data: AddressData): void }>()
 
@@ -22,20 +24,21 @@ export interface AddressData {
   district: string
 }
 
-const schema = toTypedSchema(
+const { t } = useI18n({ messages: checkoutMessages })
+const schema = computed(() => toTypedSchema(
   z.object({
-    firstName: z.string().min(1, 'Required'),
-    lastName:  z.string().min(1, 'Required'),
-    address1:  z.string().min(3, 'Please provide street and number'),
+    firstName: z.string().min(1, t('checkout.validation.required')),
+    lastName:  z.string().min(1, t('checkout.validation.required')),
+    address1:  z.string().min(3, t('checkout.validation.street')),
     address2:  z.string().optional().default(''),
-    city:      z.string().min(1, 'Required'),
+    city:      z.string().min(1, t('checkout.validation.required')),
     state:     z.string().optional().default(''),
-    zip:       z.string().min(3, 'Invalid ZIP / Postal Code'),
-    country:   z.string().min(2, 'Required'),
-    phone:     z.string().regex(/^\+[\d\s-]{7,20}$/, 'Must start with + and country code (e.g. +52 or +1)'),
+    zip:       z.string().min(3, t('checkout.validation.postalCode')),
+    country:   z.string().min(2, t('checkout.validation.required')),
+    phone:     z.string().regex(/^\+[\d\s-]{7,20}$/, t('checkout.validation.phone')),
     district:  z.string().optional().default(''),
   })
-)
+))
 
 const { handleSubmit, defineField, errors, setFieldValue } = useForm({
   validationSchema: schema,
@@ -170,13 +173,13 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
       v-if="placesError"
       class="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3 py-2"
     >
-      Address search unavailable — fill in manually. ({{ placesError }})
+      {{ t('checkout.address.unavailable') }} ({{ placesError }})
     </div>
 
     <!-- Name -->
     <div class="grid grid-cols-2 gap-4">
       <div class="space-y-1">
-        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">First Name</label>
+        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.firstName') }}</label>
         <input
           v-model="firstName"
           v-bind="firstNameAttrs"
@@ -188,7 +191,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
         <p v-if="errors.firstName" class="text-[length:var(--text-micro)] text-red-600">{{ errors.firstName }}</p>
       </div>
       <div class="space-y-1">
-        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Last Name</label>
+        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.lastName') }}</label>
         <input
           v-model="lastName"
           v-bind="lastNameAttrs"
@@ -204,19 +207,19 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
     <!-- Custom Address Search with AutocompleteService -->
     <div class="space-y-1 relative">
       <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">
-        Search Address
+        {{ t('checkout.address.search') }}
         <span v-if="autocompleteReady" class="ml-1 normal-case tracking-normal font-normal text-[color:var(--color-border-strong)]">
-          · powered by Google — any country
+          · {{ t('checkout.address.poweredBy') }}
         </span>
         <span v-else-if="!placesError" class="ml-1 normal-case tracking-normal font-normal text-[color:var(--color-border-strong)]">
-          · loading…
+          · {{ t('checkout.address.loading') }}
         </span>
       </label>
       
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Start typing your address…"
+        :placeholder="t('checkout.address.searchPlaceholder')"
         class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)]"
         @input="onSearchInput"
       />
@@ -237,13 +240,13 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
 
     <!-- Street (auto-filled, editable) -->
     <div class="space-y-1">
-      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Street Address</label>
+      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.street') }}</label>
       <input
         v-model="address1"
         v-bind="address1Attrs"
         type="text"
         autocomplete="address-line1"
-        placeholder="Street name and number"
+        :placeholder="t('checkout.address.streetPlaceholder')"
         class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)]"
         :class="{ 'border-red-500': errors.address1 }"
       />
@@ -252,13 +255,13 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
 
     <!-- Apt / Suite -->
     <div class="space-y-1">
-      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Apartment, suite, etc. (optional)</label>
+      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.apartment') }}</label>
       <input
         v-model="address2"
         v-bind="address2Attrs"
         type="text"
         autocomplete="address-line2"
-        placeholder="Apt, Suite, Unit, Building…"
+        :placeholder="t('checkout.address.apartmentPlaceholder')"
         class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)]"
       />
     </div>
@@ -266,7 +269,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
     <!-- City + State -->
     <div class="grid grid-cols-2 gap-4">
       <div class="space-y-1">
-        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">City</label>
+        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.city') }}</label>
         <input
           v-model="city"
           v-bind="cityAttrs"
@@ -278,13 +281,13 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
         <p v-if="errors.city" class="text-[length:var(--text-micro)] text-red-600">{{ errors.city }}</p>
       </div>
       <div class="space-y-1">
-        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">State / Province</label>
+        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.state') }}</label>
         <input
           v-model="state"
           v-bind="stateAttrs"
           type="text"
           autocomplete="address-level1"
-          placeholder="State or Province"
+          :placeholder="t('checkout.address.statePlaceholder')"
           class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)]"
           :class="{ 'border-red-500': errors.state }"
         />
@@ -294,12 +297,12 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
 
     <!-- Colonia — auto-shown for MX or when Google fills it -->
     <div v-if="country === 'MX' || district" class="space-y-1">
-      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Colonia / Neighborhood</label>
+      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.district') }}</label>
       <input
         v-model="district"
         v-bind="districtAttrs"
         type="text"
-        placeholder="e.g. Centro, Del Valle, Polanco"
+        :placeholder="t('checkout.address.districtPlaceholder')"
         class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)]"
       />
     </div>
@@ -307,7 +310,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
     <!-- ZIP + Country -->
     <div class="grid grid-cols-2 gap-4">
       <div class="space-y-1">
-        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">ZIP / Postal Code</label>
+        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.postalCode') }}</label>
         <input
           v-model="zip"
           v-bind="zipAttrs"
@@ -319,13 +322,13 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
         <p v-if="errors.zip" class="text-[length:var(--text-micro)] text-red-600">{{ errors.zip }}</p>
       </div>
       <div class="space-y-1">
-        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Country</label>
+        <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.country') }}</label>
         <input
           v-model="country"
           v-bind="countryAttrs"
           type="text"
           autocomplete="country"
-          placeholder="Auto-detected"
+          :placeholder="t('checkout.address.countryPlaceholder')"
           class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)] uppercase"
           :class="{ 'border-red-500': errors.country }"
         />
@@ -335,11 +338,11 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
 
     <!-- Phone -->
     <div class="space-y-1">
-      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Phone</label>
+      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('checkout.address.phone') }}</label>
       <vue-tel-input
         v-model="phone"
         mode="international"
-        :inputOptions="{ placeholder: 'Include country code (+1, +52…)', autocomplete: 'tel' }"
+        :inputOptions="{ placeholder: t('checkout.address.phonePlaceholder'), autocomplete: 'tel' }"
         class="vantier-tel-input"
         :class="{ 'border-red-500': errors.phone }"
       />
@@ -350,7 +353,7 @@ const onSubmit = handleSubmit((values) => emit('submit', values as AddressData))
       type="submit"
       class="w-full py-4 bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] text-[length:var(--text-small)] tracking-[var(--tracking-label)] uppercase hover:opacity-80 transition-opacity duration-[var(--duration-normal)] mt-2"
     >
-      Continue to Shipping
+      {{ t('checkout.address.continue') }}
     </button>
   </form>
 </template>

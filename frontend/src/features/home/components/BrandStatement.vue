@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const revealed = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
@@ -42,11 +45,11 @@ onMounted(() => {
       }"
     >
       <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] opacity-40 mb-8">
-        Los Angeles — México
+        {{ t('home.statement.location') }}
       </p>
 
       <blockquote class="text-[length:var(--text-headline)] font-light leading-[1.1] tracking-[var(--tracking-headline)] text-[color:var(--color-obsidian)] max-w-lg">
-        "We build clothes that don't ask for attention.<br />They command it."
+        {{ t('home.statement.quote').split('\n')[0] }}<br />{{ t('home.statement.quote').split('\n')[1] }}
       </blockquote>
 
       <!-- Gold rule -->
@@ -54,10 +57,10 @@ onMounted(() => {
 
       <div class="flex flex-col gap-1 mb-10">
         <p class="text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-obsidian)]">
-          Silent Evolution.
+          {{ t('home.statement.evolution') }}
         </p>
         <p class="text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] font-medium text-[color:var(--color-obsidian)] opacity-50">
-          Timeless Legacy. Est. 2024
+          {{ t('home.statement.legacy') }}
         </p>
       </div>
 
@@ -65,7 +68,7 @@ onMounted(() => {
         to="/about"
         class="inline-flex items-center gap-3 text-[length:var(--text-micro)] font-medium uppercase tracking-[var(--tracking-label)] text-[color:var(--color-obsidian)] hover:opacity-50 transition-opacity duration-[var(--duration-normal)] w-fit"
       >
-        Explore the brand
+        {{ t('home.statement.explore') }}
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>

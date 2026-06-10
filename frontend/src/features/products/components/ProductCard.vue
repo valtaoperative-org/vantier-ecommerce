@@ -12,6 +12,8 @@ import LowStockBadge from './LowStockBadge.vue'
 import { useCartStore } from '@features/cart/store'
 import { useToast } from '@shared/composables/useToast'
 import { formatUSD, formatMXNFromUSD } from '@shared/utils/formatters'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
 
 type QuickState = 'idle' | 'loading' | 'success'
 
@@ -23,6 +25,7 @@ const props = defineProps<{
 const router = useRouter()
 const cart = useCartStore()
 const toast = useToast()
+const { t } = useI18n({ messages })
 
 const activeVariants = computed(() =>
   props.product.variants.filter(v => v.is_active)
@@ -44,10 +47,10 @@ const displayPrice = computed(() => {
 })
 
 // Display labels derived from backend enum values
-const lineLabel = computed(() => LINE_LABELS[props.product.line] ?? props.product.line)
+const lineLabel = computed(() => t(`products.labels.lines.${props.product.line}`, LINE_LABELS[props.product.line] ?? props.product.line))
 const styleLabel = computed(() => {
   const s = activeVariants.value[0]?.style
-  return s ? (STYLE_LABELS[s] ?? s) : ''
+  return s ? t(`products.labels.styles.${s}`, STYLE_LABELS[s] ?? s) : ''
 })
 
 // Unique colors from active variants (max 5 swatches)
@@ -77,7 +80,7 @@ async function onQuickAdd(e: Event) {
   )
 
   if (candidates.length === 0) {
-    toast.show('Out of stock', 'error')
+    toast.show(t('products.card.outOfStock'), 'error')
     return
   }
 
@@ -99,7 +102,7 @@ async function onQuickAdd(e: Event) {
     imageUrl: primaryImage.value?.url,
   })
   quickState.value = 'success'
-  toast.show('Added to cart', 'success')
+  toast.show(t('products.card.added'), 'success')
   setTimeout(() => (quickState.value = 'idle'), 1800)
 }
 </script>
@@ -135,7 +138,7 @@ async function onQuickAdd(e: Event) {
         <!-- Quick-add button — visible on hover -->
         <button
           class="opacity-0 group-hover:opacity-100 transition-all duration-[var(--duration-normal)] w-9 h-9 flex items-center justify-center bg-[color:var(--color-ivory)] text-[color:var(--color-obsidian)] hover:bg-[color:var(--color-obsidian)] hover:text-[color:var(--color-ivory)] flex-shrink-0 ml-2"
-          :aria-label="`Quick add ${product.name} to cart`"
+          :aria-label="t('products.card.quickAdd', { name: product.name })"
           @click="onQuickAdd"
         >
           <span v-if="quickState === 'loading'" class="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />

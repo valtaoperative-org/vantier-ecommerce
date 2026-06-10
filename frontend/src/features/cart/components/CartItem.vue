@@ -2,10 +2,13 @@
 import { ref, watch } from 'vue'
 import { useCartStore } from '@features/cart/store'
 import type { CartItem } from '@features/cart/types'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 const props = defineProps<{ item: CartItem }>()
 
 const cart = useCartStore()
+const { t } = useI18n({ messages: checkoutMessages })
 const qtyBump = ref(false)
 
 function increment() {
@@ -49,7 +52,7 @@ function formatPrice(n: number) {
         </p>
         <button
           class="text-[color:var(--color-border-strong)] hover:text-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)] flex-shrink-0"
-          aria-label="Remove item"
+          :aria-label="t('cart.removeItem')"
           @click="cart.removeItem(item.variantId)"
         >
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -70,7 +73,7 @@ function formatPrice(n: number) {
           </svg>
         </div>
         <div>
-          <span class="uppercase tracking-[var(--tracking-label)] opacity-80 block text-[9px]">Custom Design</span>
+          <span class="uppercase tracking-[var(--tracking-label)] opacity-80 block text-[9px]">{{ t('cart.customDesign') }}</span>
           <span class="text-[color:var(--color-ivory)] opacity-90">{{ item.customizationPlacement }}</span>
         </div>
       </div>
@@ -80,7 +83,7 @@ function formatPrice(n: number) {
         <div class="flex items-center border border-[color:var(--color-border)]">
           <button
             class="w-7 h-7 flex items-center justify-center text-[color:var(--color-on-surface)] hover:bg-[color:var(--color-warm-beige)] transition-colors duration-[var(--duration-fast)]"
-            aria-label="Decrease quantity"
+            :aria-label="t('cart.decreaseQuantity')"
             @click="decrement"
           >
             <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12" /></svg>
@@ -93,7 +96,7 @@ function formatPrice(n: number) {
           </span>
           <button
             class="w-7 h-7 flex items-center justify-center text-[color:var(--color-on-surface)] hover:bg-[color:var(--color-warm-beige)] transition-colors duration-[var(--duration-fast)]"
-            aria-label="Increase quantity"
+            :aria-label="t('cart.increaseQuantity')"
             @click="increment"
           >
             <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>

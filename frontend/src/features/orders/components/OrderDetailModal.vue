@@ -3,9 +3,12 @@ import { ref } from 'vue'
 import type { Order } from '../types'
 import OrderStatusBadge from './OrderStatusBadge.vue'
 import ExchangeRequestForm from '@features/exchanges/components/ExchangeRequestForm.vue'
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
 
 const props = defineProps<{ order: Order | null }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
+const { t, locale } = useI18n({ messages: accountMessages })
 
 const showExchange = ref(false)
 const exchangeTargetVariant = ref('')
@@ -22,10 +25,10 @@ function onExchangeSubmit(data: { reason: string; preferredVariant: string }) {
 }
 
 function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD' }).format(n)
 }
 function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
+  return new Intl.DateTimeFormat(locale.value, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
 }
 </script>
 
@@ -48,14 +51,14 @@ function formatDate(iso: string) {
                 {{ formatDate(order.createdAt) }}
               </p>
               <h2 class="text-[length:var(--text-title)] font-semibold mt-1">
-                Order #{{ order.id.slice(-8).toUpperCase() }}
+                {{ t('orders.orderNumber', { number: order.id.slice(-8).toUpperCase() }) }}
               </h2>
             </div>
             <div class="flex items-center gap-3">
               <OrderStatusBadge :status="order.status" />
               <button
                 class="text-[color:var(--color-border-strong)] hover:text-[color:var(--color-obsidian)] transition-colors"
-                aria-label="Close"
+                :aria-label="t('orders.close')"
                 @click="emit('close')"
               >
                 <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -84,7 +87,7 @@ function formatDate(iso: string) {
               >
                 <div>
                   <p class="text-[length:var(--text-small)] text-[color:var(--color-on-surface)]">{{ item.name }}</p>
-                  <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">{{ item.color }} · {{ item.size }} · qty {{ item.quantity }}</p>
+                  <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">{{ item.color }} · {{ item.size }} · {{ t('orders.quantity', { count: item.quantity }) }}</p>
                 </div>
                 <div class="flex items-center gap-3 flex-shrink-0">
                   <p class="text-[length:var(--text-small)]">{{ formatPrice(item.priceUSD * item.quantity) }}</p>
@@ -93,7 +96,7 @@ function formatDate(iso: string) {
                     class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] underline hover:opacity-70 transition-opacity"
                     @click="requestExchange(item.variantId)"
                   >
-                    Exchange
+                    {{ t('orders.exchange') }}
                   </button>
                 </div>
               </div>
@@ -102,21 +105,21 @@ function formatDate(iso: string) {
             <!-- Totals -->
             <div class="border-t border-[color:var(--color-border)] pt-4 space-y-1.5">
               <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
-                <span>Shipping</span>
-                <span>{{ order.shippingUSD === 0 ? 'Free' : formatPrice(order.shippingUSD) }}</span>
+                <span>{{ t('orders.shipping') }}</span>
+                <span>{{ order.shippingUSD === 0 ? t('orders.free') : formatPrice(order.shippingUSD) }}</span>
               </div>
               <div v-if="order.discountUSD > 0" class="flex justify-between text-[length:var(--text-small)] text-green-700">
-                <span>Discount</span>
+                <span>{{ t('orders.discount') }}</span>
                 <span>-{{ formatPrice(order.discountUSD) }}</span>
               </div>
               <div class="flex justify-between text-[length:var(--text-small)] font-semibold">
-                <span>Total</span>
+                <span>{{ t('orders.total') }}</span>
                 <span>{{ formatPrice(order.totalUSD) }}</span>
               </div>
             </div>
 
             <p v-if="order.trackingNumber" class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
-              Tracking: <span class="font-medium text-[color:var(--color-on-surface)]">{{ order.trackingNumber }}</span>
+              {{ t('orders.tracking') }}: <span class="font-medium text-[color:var(--color-on-surface)]">{{ order.trackingNumber }}</span>
             </p>
           </template>
         </div>

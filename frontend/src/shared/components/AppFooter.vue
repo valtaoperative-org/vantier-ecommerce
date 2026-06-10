@@ -1,4 +1,19 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+const collectionLinks = computed(() => [
+  { label: 'Polo Atelier', to: '/shop?line=polo-atelier' },
+  { label: 'Signature', to: '/shop?line=signature' },
+  { label: 'Essential', to: '/shop?line=essential' },
+  { label: t('shared.footer.allProducts'), to: '/shop' },
+])
+const legalLinks = computed(() => [
+  { label: t('shared.footer.privacy'), to: '/privacy' },
+  { label: t('shared.footer.shipping'), to: '/shipping' },
+  { label: t('shared.footer.exchangePolicy'), to: '/exchange' },
+])
 </script>
 
 <template>
@@ -20,21 +35,16 @@
           Los Angeles — México
         </p>
         <p class="text-[length:var(--text-micro)] opacity-30 leading-relaxed max-w-[220px] mt-2">
-          Silent luxury. Crafted for those who move with purpose.
+          {{ t('shared.footer.tagline') }}
         </p>
       </div>
 
       <!-- Center: Collection links -->
       <div class="flex flex-col gap-4">
-        <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] opacity-40">The Collection</p>
-        <nav class="flex flex-col gap-3" aria-label="Collection navigation">
+        <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] opacity-40">{{ t('shared.footer.collection') }}</p>
+        <nav class="flex flex-col gap-3" :aria-label="t('shared.footer.collectionNavigation')">
           <RouterLink
-            v-for="item in [
-              { label: 'Polo Atelier', to: '/shop?line=polo-atelier' },
-              { label: 'Signature', to: '/shop?line=signature' },
-              { label: 'Essential', to: '/shop?line=essential' },
-              { label: 'All Products', to: '/shop' },
-            ]"
+            v-for="item in collectionLinks"
             :key="item.to"
             :to="item.to"
             class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] opacity-60 hover:opacity-100 transition-opacity duration-[var(--duration-fast)] w-fit"
@@ -91,13 +101,9 @@
         <p class="text-[length:var(--text-micro)] opacity-25 uppercase tracking-[var(--tracking-label)]">
           © 2025 Vantier LLC
         </p>
-        <nav class="flex items-center gap-6" aria-label="Legal navigation">
+        <nav class="flex items-center gap-6" :aria-label="t('shared.footer.legalNavigation')">
           <RouterLink
-            v-for="item in [
-              { label: 'Privacy', to: '/privacy' },
-              { label: 'Shipping', to: '/shipping' },
-              { label: 'Exchange Policy', to: '/exchange' },
-            ]"
+            v-for="item in legalLinks"
             :key="item.to"
             :to="item.to"
             class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] opacity-25 hover:opacity-60 transition-opacity duration-[var(--duration-fast)]"

@@ -4,9 +4,12 @@ import { useRouter } from 'vue-router'
 import FreeShippingBar from '@shared/components/FreeShippingBar.vue'
 import DiscountCodeInput from './DiscountCodeInput.vue'
 import CartItem from './CartItem.vue'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 const cart = useCartStore()
 const router = useRouter()
+const { t } = useI18n({ messages: checkoutMessages })
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
@@ -16,8 +19,8 @@ function formatPrice(n: number) {
 <template>
   <div class="max-w-[var(--container-max)] mx-auto px-[var(--spacing-container)] py-12">
     <div class="mb-8">
-      <p class="text-xs uppercase tracking-widest text-[color:var(--color-border-strong)]">Your Selection</p>
-      <h1 class="mt-1 text-[length:var(--text-headline)] font-semibold uppercase tracking-[var(--tracking-headline)]">Cart</h1>
+      <p class="text-xs uppercase tracking-widest text-[color:var(--color-border-strong)]">{{ t('cart.selection') }}</p>
+      <h1 class="mt-1 text-[length:var(--text-headline)] font-semibold uppercase tracking-[var(--tracking-headline)]">{{ t('cart.title') }}</h1>
     </div>
 
     <!-- Empty state -->
@@ -26,14 +29,14 @@ function formatPrice(n: number) {
         <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
       </svg>
       <div>
-        <p class="text-[length:var(--text-title)] font-light uppercase tracking-[var(--tracking-headline)]">Your cart is empty</p>
-        <p class="mt-2 text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">Add items from the collection to get started.</p>
+        <p class="text-[length:var(--text-title)] font-light uppercase tracking-[var(--tracking-headline)]">{{ t('cart.empty') }}</p>
+        <p class="mt-2 text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">{{ t('cart.emptyHint') }}</p>
       </div>
       <RouterLink
         to="/shop"
         class="mt-2 px-8 py-3 bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] hover:opacity-80 transition-opacity"
       >
-        Shop the Collection
+        {{ t('cart.shopCollection') }}
       </RouterLink>
     </div>
 
@@ -53,7 +56,7 @@ function formatPrice(n: number) {
       <!-- Summary column -->
       <div class="lg:col-span-1">
         <div class="sticky top-24 space-y-6 border border-[color:var(--color-border)] p-6 bg-[color:var(--color-ivory)]">
-          <p class="text-xs uppercase tracking-widest font-semibold text-[color:var(--color-obsidian)]">Order Summary</p>
+          <p class="text-xs uppercase tracking-widest font-semibold text-[color:var(--color-obsidian)]">{{ t('cart.orderSummary') }}</p>
 
           <FreeShippingBar />
 
@@ -61,12 +64,12 @@ function formatPrice(n: number) {
 
           <div class="space-y-2 pt-2 border-t border-[color:var(--color-border)]">
             <div class="flex justify-between text-[length:var(--text-small)]">
-              <span>Subtotal</span>
+              <span>{{ t('cart.subtotal') }}</span>
               <span class="font-medium">{{ formatPrice(cart.subtotal) }}</span>
             </div>
             <div class="flex justify-between text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
-              <span>Shipping</span>
-              <span>{{ cart.freeShipping ? 'Free' : 'Calculated at checkout' }}</span>
+              <span>{{ t('cart.shipping') }}</span>
+              <span>{{ cart.freeShipping ? t('cart.free') : t('cart.calculatedAtCheckout') }}</span>
             </div>
           </div>
 
@@ -74,11 +77,11 @@ function formatPrice(n: number) {
             class="block w-full text-center py-4 bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] text-[length:var(--text-small)] tracking-[var(--tracking-label)] uppercase hover:opacity-80 transition-opacity duration-[var(--duration-normal)]"
             @click="router.push('/checkout')"
           >
-            Proceed to Checkout
+            {{ t('cart.checkout') }}
           </button>
 
           <p class="text-center text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
-            Taxes calculated at checkout
+            {{ t('cart.taxes') }}
           </p>
         </div>
       </div>

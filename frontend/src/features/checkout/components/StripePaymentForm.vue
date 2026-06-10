@@ -2,6 +2,8 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { loadStripe } from '@stripe/stripe-js'
 import type { Stripe, StripeElements } from '@stripe/stripe-js'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 const props = defineProps<{
   clientSecret: string
@@ -19,18 +21,19 @@ const elements = ref<StripeElements | null>(null)
 const loading = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
+const { t } = useI18n({ messages: checkoutMessages })
 
 onMounted(async () => {
   const pk = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
   if (!pk) {
-    errorMessage.value = 'Payment service not configured.'
+    errorMessage.value = t('checkout.payment.notConfigured')
     loading.value = false
     return
   }
 
   stripe.value = await loadStripe(pk)
   if (!stripe.value) {
-    errorMessage.value = 'Could not load payment service.'
+    errorMessage.value = t('checkout.payment.loadFailed')
     loading.value = false
     return
   }
@@ -55,7 +58,7 @@ onMounted(async () => {
   paymentElement.on('ready', () => { loading.value = false })
   paymentElement.on('loaderror', (e) => {
     console.error('[Stripe] loaderror:', e)
-    errorMessage.value = `Stripe load error: ${(e as any)?.error?.message ?? 'unknown'}`
+    errorMessage.value = t('checkout.payment.stripeLoadError', { message: (e as any)?.error?.message ?? 'unknown' })
     loading.value = false
   })
   paymentElement.mount(containerRef.value!)
@@ -64,7 +67,7 @@ onMounted(async () => {
   setTimeout(() => {
     if (loading.value) {
       console.error('[Stripe] Payment Element never fired ready — check publishable key vs client_secret mismatch')
-      errorMessage.value = 'Payment form failed to load. Check browser console for details.'
+      errorMessage.value = t('checkout.payment.formLoadFailed')
       loading.value = false
     }
   }, 8000)
@@ -88,7 +91,7 @@ async function handleSubmit() {
   })
 
   if (error) {
-    errorMessage.value = error.message ?? 'Payment failed. Please try again.'
+    errorMessage.value = error.message ?? t('checkout.payment.failed')
     submitting.value = false
     emit('error', errorMessage.value)
   } else {
@@ -127,11 +130,11 @@ async function handleSubmit() {
         v-if="submitting"
         class="w-4 h-4 border-2 border-[color:var(--color-ivory)] border-t-transparent rounded-full animate-spin"
       />
-      <span>{{ submitting ? 'Processing…' : 'Pay now' }}</span>
+      <span>{{ submitting ? t('checkout.payment.processing') : t('checkout.payment.payNow') }}</span>
     </button>
 
     <p class="text-center text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
-      Secured by Stripe · SSL encrypted
+      {{ t('checkout.payment.secure') }}
     </p>
   </div>
 </template>

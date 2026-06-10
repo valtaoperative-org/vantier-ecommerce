@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { Product } from '../types'
 import ProductCard from './ProductCard.vue'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 defineProps<{ products: Product[]; loading?: boolean }>()
 </script>
@@ -25,7 +28,7 @@ defineProps<{ products: Product[]; loading?: boolean }>()
     </div>
     <!-- Empty state -->
     <div v-if="!loading && products.length === 0" class="py-24 text-center">
-      <p class="text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] opacity-40">No products found</p>
+      <p class="text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] opacity-40">{{ t('products.grid.empty') }}</p>
     </div>
   </div>
 </template>

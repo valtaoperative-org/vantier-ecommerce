@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import SeoHead from '@shared/components/SeoHead.vue'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
+const { t } = useI18n({ messages: checkoutMessages })
 </script>
 
 <template>
   <SeoHead
-    title="Payment Cancelled — Vantier"
-    description="Your payment was cancelled."
+    :title="t('checkout.seo.cancelledTitle')"
+    :description="t('checkout.seo.cancelledDescription')"
     :robots="{ index: false, follow: false }"
   />
   <div class="max-w-lg mx-auto py-16 px-6 text-center space-y-6">
@@ -19,13 +22,13 @@ import SeoHead from '@shared/components/SeoHead.vue'
 
     <div class="space-y-2">
       <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)]">
-        Payment Cancelled
+        {{ t('checkout.cancelled.label') }}
       </p>
       <h1 class="text-[length:var(--text-headline)] font-semibold text-[color:var(--color-on-surface)]">
-        No charge was made
+        {{ t('checkout.cancelled.title') }}
       </h1>
       <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
-        Your cart is still saved. You can return and try again whenever you're ready.
+        {{ t('checkout.cancelled.body') }}
       </p>
     </div>
 
@@ -33,7 +36,7 @@ import SeoHead from '@shared/components/SeoHead.vue'
       to="/checkout"
       class="inline-block px-10 py-3 bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] text-[length:var(--text-small)] tracking-[var(--tracking-label)] uppercase hover:opacity-80 transition-opacity duration-[var(--duration-normal)]"
     >
-      Return to Checkout
+      {{ t('checkout.cancelled.return') }}
     </RouterLink>
   </div>
 </template>

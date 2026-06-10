@@ -5,7 +5,10 @@ import type { Order } from '../types'
 import OrderCard from './OrderCard.vue'
 import OrderDetailModal from './OrderDetailModal.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
 
+const { t } = useI18n({ messages: accountMessages })
 const store = useOrdersStore()
 const selectedOrder = ref<Order | null>(null)
 const loading = ref(true)
@@ -33,14 +36,14 @@ onMounted(async () => {
 
 <template>
   <SeoHead
-    title="Your Orders — Vantier"
-    description="View your Vantier order history"
+    :title="t('orders.seoTitle')"
+    :description="t('orders.seoDescription')"
     :robots="{ index: false, follow: false }"
   />
 
   <div class="max-w-3xl mx-auto px-[var(--spacing-container)] py-12">
     <h1 class="text-[length:var(--text-headline)] font-semibold mb-8 text-[color:var(--color-on-surface)] tracking-[var(--tracking-headline)]">
-      Your Orders
+      {{ t('orders.title') }}
     </h1>
 
     <div v-if="loading" class="space-y-3">
@@ -48,7 +51,7 @@ onMounted(async () => {
     </div>
 
     <div v-else-if="store.orders.length === 0" class="text-center py-16">
-      <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">No orders yet.</p>
+      <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">{{ t('orders.empty') }}</p>
     </div>
 
     <div v-else class="space-y-3">

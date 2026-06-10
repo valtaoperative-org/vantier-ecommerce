@@ -3,11 +3,14 @@ import { onMounted } from 'vue'
 import { useExchangesStore } from '../store'
 import ExchangeStatusBadge from './ExchangeStatusBadge.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
 
 const store = useExchangesStore()
+const { t, locale } = useI18n({ messages: accountMessages })
 
 function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
+  return new Intl.DateTimeFormat(locale.value, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
 }
 
 onMounted(async () => {
@@ -17,18 +20,18 @@ onMounted(async () => {
 
 <template>
   <SeoHead
-    title="Your Exchanges — Vantier"
-    description="Track your exchange requests"
+    :title="t('exchanges.seoTitle')"
+    :description="t('exchanges.seoDescription')"
     :robots="{ index: false, follow: false }"
   />
 
   <div class="max-w-3xl mx-auto px-[var(--spacing-container)] py-12">
     <h1 class="text-[length:var(--text-headline)] font-semibold mb-8 text-[color:var(--color-on-surface)] tracking-[var(--tracking-headline)]">
-      Exchanges
+      {{ t('exchanges.title') }}
     </h1>
 
     <div v-if="store.exchanges.length === 0" class="text-center py-16">
-      <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">No exchange requests.</p>
+      <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">{{ t('exchanges.empty') }}</p>
     </div>
 
     <div v-else class="space-y-3">
@@ -39,10 +42,10 @@ onMounted(async () => {
       >
         <div class="space-y-1">
           <p class="text-[length:var(--text-small)] font-medium text-[color:var(--color-on-surface)]">
-            Exchange #{{ ex.id.slice(-6).toUpperCase() }}
+            {{ t('exchanges.exchangeNumber', { number: ex.id.slice(-6).toUpperCase() }) }}
           </p>
           <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
-            Order #{{ ex.originalOrderId.slice(-8).toUpperCase() }} · {{ formatDate(ex.createdAt) }}
+            {{ t('exchanges.orderNumber', { number: ex.originalOrderId.slice(-8).toUpperCase() }) }} · {{ formatDate(ex.createdAt) }}
           </p>
         </div>
         <ExchangeStatusBadge :status="ex.status" />

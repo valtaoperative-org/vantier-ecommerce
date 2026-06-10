@@ -6,6 +6,8 @@ import { useCheckoutStore } from '../store'
 import { apiClient } from '@shared/api/client'
 import OrderConfirmCard from './OrderConfirmCard.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 interface OrderItem {
   id: string
@@ -38,6 +40,7 @@ const orderId = (route.query.order_id as string) ?? ''
 const order = ref<OrderDetail | null>(null)
 const loading = ref(true)
 const error = ref(false)
+const { t } = useI18n({ messages: checkoutMessages })
 
 onMounted(async () => {
   cart.clear()
@@ -73,8 +76,8 @@ function formatPrice(n: string | number) {
 
 <template>
   <SeoHead
-    title="Order Confirmed — Vantier"
-    description="Your order has been confirmed."
+    :title="t('checkout.seo.confirmedTitle')"
+    :description="t('checkout.seo.confirmedDescription')"
     :robots="{ index: false, follow: false }"
   />
 
@@ -98,13 +101,15 @@ function formatPrice(n: string | number) {
         </svg>
       </div>
       <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)]">
-        Order Confirmed
+        {{ t('checkout.confirmation.confirmed') }}
       </p>
       <h1 class="text-[length:var(--text-headline)] font-semibold text-[color:var(--color-on-surface)]">
-        Thank you{{ order.customer_name ? `, ${order.customer_name.split(' ')[0]}` : '' }}
+        {{ order.customer_name
+          ? t('checkout.confirmation.thankYouName', { name: order.customer_name.split(' ')[0] })
+          : t('checkout.confirmation.thankYou') }}
       </h1>
       <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
-        Order #{{ order.id.slice(0, 8).toUpperCase() }}
+        {{ t('checkout.confirmation.orderNumber', { orderId: order.id.slice(0, 8).toUpperCase() }) }}
       </p>
     </div>
 
@@ -117,10 +122,10 @@ function formatPrice(n: string | number) {
       >
         <div>
           <p class="text-[length:var(--text-small)] text-[color:var(--color-on-surface)]">
-            Variant {{ item.variant_id.slice(0, 8) }}
+            {{ t('checkout.confirmation.variant', { id: item.variant_id.slice(0, 8) }) }}
           </p>
           <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
-            Qty: {{ item.qty }}
+            {{ t('checkout.confirmation.quantity', { quantity: item.qty }) }}
           </p>
         </div>
         <p class="text-[length:var(--text-small)] font-medium text-[color:var(--color-on-surface)]">
@@ -132,19 +137,19 @@ function formatPrice(n: string | number) {
     <!-- Totals -->
     <div class="space-y-2 text-[length:var(--text-small)]">
       <div class="flex justify-between text-[color:var(--color-border-strong)]">
-        <span>Subtotal</span>
+        <span>{{ t('checkout.confirmation.subtotal') }}</span>
         <span>{{ formatPrice(order.subtotal_usd) }}</span>
       </div>
       <div class="flex justify-between text-[color:var(--color-border-strong)]">
-        <span>Shipping</span>
-        <span>{{ order.is_free_shipping ? 'Free' : formatPrice(order.shipping_usd) }}</span>
+        <span>{{ t('checkout.confirmation.shipping') }}</span>
+        <span>{{ order.is_free_shipping ? t('checkout.confirmation.free') : formatPrice(order.shipping_usd) }}</span>
       </div>
       <div v-if="Number(order.discount_usd) > 0" class="flex justify-between text-green-700">
-        <span>Discount</span>
+        <span>{{ t('checkout.confirmation.discount') }}</span>
         <span>-{{ formatPrice(order.discount_usd) }}</span>
       </div>
       <div class="flex justify-between font-semibold text-[color:var(--color-on-surface)] border-t border-[color:var(--color-border)] pt-2">
-        <span>Total</span>
+        <span>{{ t('checkout.confirmation.total') }}</span>
         <div class="text-right">
           <span>{{ formatPrice(order.total_usd) }}</span>
           <p class="text-[length:var(--text-micro)] font-normal text-[color:var(--color-border-strong)]">(~{{ formatMXNFromUSD(Number(order.total_usd)) }})</p>
@@ -155,16 +160,16 @@ function formatPrice(n: string | number) {
     <!-- Delivery info -->
     <div class="border border-[color:var(--color-border)] p-4 space-y-1 text-[length:var(--text-small)]">
       <p class="text-[color:var(--color-on-surface)]">
-        Shipping to <span class="font-medium">{{ order.shipping_address.city }}, {{ order.shipping_address.state }}</span>
+        {{ t('checkout.confirmation.shippingTo', { city: order.shipping_address.city, state: order.shipping_address.state }) }}
       </p>
       <p v-if="order.carrier_tracking_number" class="text-[color:var(--color-border-strong)]">
-        Tracking: <span class="font-medium">{{ order.carrier_tracking_number }}</span>
+        {{ t('checkout.confirmation.tracking', { number: order.carrier_tracking_number }) }}
       </p>
       <p v-else class="text-[color:var(--color-border-strong)]">
-        Estimated delivery: <span class="font-medium">5–7 business days</span>
+        {{ t('checkout.confirmation.estimatedDelivery', { days: t('checkout.confirmation.deliveryDays') }) }}
       </p>
       <p class="text-[color:var(--color-border-strong)]">
-        Confirmation email sent to {{ order.customer_email }}
+        {{ t('checkout.confirmation.emailSent', { email: order.customer_email }) }}
       </p>
     </div>
 
@@ -174,7 +179,7 @@ function formatPrice(n: string | number) {
         to="/shop"
         class="inline-block px-10 py-3 bg-[color:var(--color-obsidian)] text-[color:var(--color-ivory)] text-[length:var(--text-small)] tracking-[var(--tracking-label)] uppercase hover:opacity-80 transition-opacity duration-[var(--duration-normal)]"
       >
-        Continue Shopping
+        {{ t('checkout.confirmation.continueShopping') }}
       </RouterLink>
     </div>
   </div>

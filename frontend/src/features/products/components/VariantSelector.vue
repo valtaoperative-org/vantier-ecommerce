@@ -4,6 +4,9 @@ import type { ProductVariant } from '../types'
 import ColorSwatch from '@shared/components/ColorSwatch.vue'
 import SizeButton from '@shared/components/SizeButton.vue'
 import { COLOR_BG } from '../mockData'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const props = defineProps<{
   variants: ProductVariant[]
@@ -53,7 +56,7 @@ defineExpose({ resolvedVariant })
     <div>
       <div class="flex items-center justify-between mb-2">
         <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-on-surface)]">
-          Color
+          {{ t('products.variants.color') }}
         </p>
         <p v-if="selectedColor" class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
           {{ selectedColor }}
@@ -74,7 +77,7 @@ defineExpose({ resolvedVariant })
     <!-- Size selection -->
     <div>
       <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-on-surface)] mb-2">
-        Size
+        {{ t('products.variants.size') }}
       </p>
       <div class="flex gap-2 flex-wrap">
         <SizeButton
@@ -93,7 +96,7 @@ defineExpose({ resolvedVariant })
       v-if="resolvedVariant && resolvedVariant.stock_qty <= 10"
       class="text-[length:var(--text-micro)] text-[color:var(--color-amber-accent)] tracking-[var(--tracking-label)] uppercase"
     >
-      Only {{ resolvedVariant.stock_qty }} left
+      {{ t('products.variants.lowStock', { count: resolvedVariant.stock_qty }) }}
     </p>
   </div>
 </template>

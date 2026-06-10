@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
 
 const props = defineProps<{ orderId: string; variantId: string }>()
 const emit = defineEmits<{ (e: 'submit', data: { reason: string; preferredVariant: string }): void; (e: 'cancel'): void }>()
@@ -7,13 +9,14 @@ const emit = defineEmits<{ (e: 'submit', data: { reason: string; preferredVarian
 const reason = ref('')
 const preferredVariant = ref('')
 const submitting = ref(false)
+const { t } = useI18n({ messages: accountMessages })
 
 const reasons = [
-  'Wrong size',
-  'Wrong color',
-  'Defective item',
-  'Changed my mind',
-  'Other',
+  { value: 'Wrong size', key: 'wrongSize' },
+  { value: 'Wrong color', key: 'wrongColor' },
+  { value: 'Defective item', key: 'defective' },
+  { value: 'Changed my mind', key: 'changedMind' },
+  { value: 'Other', key: 'other' },
 ]
 
 async function submit() {
@@ -28,28 +31,28 @@ async function submit() {
 
 <template>
   <div class="space-y-4">
-    <h3 class="text-[length:var(--text-title)] font-semibold text-[color:var(--color-on-surface)]">Request Exchange</h3>
+    <h3 class="text-[length:var(--text-title)] font-semibold text-[color:var(--color-on-surface)]">{{ t('exchanges.requestTitle') }}</h3>
     <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
-      Order #{{ orderId.slice(-8).toUpperCase() }} · Variant {{ variantId.slice(-6) }}
+      {{ t('exchanges.orderNumber', { number: orderId.slice(-8).toUpperCase() }) }} · {{ t('exchanges.variant', { variant: variantId.slice(-6) }) }}
     </p>
 
     <div class="space-y-1">
-      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Reason</label>
+      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('exchanges.reason') }}</label>
       <select
         v-model="reason"
         class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] text-[color:var(--color-on-surface)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)]"
       >
-        <option value="" disabled>Select a reason</option>
-        <option v-for="r in reasons" :key="r" :value="r">{{ r }}</option>
+        <option value="" disabled>{{ t('exchanges.selectReason') }}</option>
+        <option v-for="r in reasons" :key="r.value" :value="r.value">{{ t(`exchanges.reasons.${r.key}`) }}</option>
       </select>
     </div>
 
     <div class="space-y-1">
-      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">Preferred Variant (optional)</label>
+      <label class="block text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)]">{{ t('exchanges.preferredVariant') }}</label>
       <input
         v-model="preferredVariant"
         type="text"
-        placeholder="e.g. Size M, Navy"
+        :placeholder="t('exchanges.preferredVariantPlaceholder')"
         class="w-full border border-[color:var(--color-border)] bg-transparent px-3 py-2.5 text-[length:var(--text-small)] text-[color:var(--color-on-surface)] focus:outline-none focus:border-[color:var(--color-obsidian)] transition-colors duration-[var(--duration-fast)]"
       />
     </div>
@@ -61,13 +64,13 @@ async function submit() {
         @click="submit"
       >
         <span v-if="submitting" class="w-4 h-4 border-2 border-[color:var(--color-ivory)] border-t-transparent rounded-full animate-spin" />
-        Submit Exchange
+        {{ t('exchanges.submit') }}
       </button>
       <button
         class="px-6 py-3 border border-[color:var(--color-border)] text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] hover:border-[color:var(--color-border-strong)] transition-colors duration-[var(--duration-fast)]"
         @click="emit('cancel')"
       >
-        Cancel
+        {{ t('exchanges.cancel') }}
       </button>
     </div>
   </div>

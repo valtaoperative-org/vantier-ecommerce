@@ -4,6 +4,10 @@ import { RouterLink } from 'vue-router'
 import AddressCard from './AddressCard.vue'
 import type { SavedAddress } from './AddressCard.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
+
+const { t } = useI18n({ messages: accountMessages })
 
 const addresses = ref<SavedAddress[]>([
   {
@@ -30,14 +34,14 @@ function setDefault(id: string) {
 
 <template>
   <SeoHead
-    title="Account — Vantier"
-    description="Manage your account and saved addresses"
+    :title="t('account.seoTitle')"
+    :description="t('account.seoDescription')"
     :robots="{ index: false, follow: false }"
   />
 
   <div class="max-w-3xl mx-auto px-[var(--spacing-container)] py-12 space-y-12">
     <h1 class="text-[length:var(--text-headline)] font-semibold text-[color:var(--color-on-surface)] tracking-[var(--tracking-headline)]">
-      Account
+      {{ t('account.title') }}
     </h1>
 
     <!-- Quick nav -->
@@ -45,26 +49,26 @@ function setDefault(id: string) {
       <RouterLink
         to="/account/orders"
         class="text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] hover:opacity-70 transition-opacity"
-      >Orders</RouterLink>
+      >{{ t('account.orders') }}</RouterLink>
       <RouterLink
         to="/account/exchanges"
         class="text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] hover:opacity-70 transition-opacity"
-      >Exchanges</RouterLink>
+      >{{ t('account.exchanges') }}</RouterLink>
     </div>
 
     <!-- Saved addresses -->
     <section class="space-y-4">
       <div class="flex items-center justify-between">
-        <h2 class="text-[length:var(--text-title)] font-semibold text-[color:var(--color-on-surface)]">Saved Addresses</h2>
+        <h2 class="text-[length:var(--text-title)] font-semibold text-[color:var(--color-on-surface)]">{{ t('account.savedAddresses') }}</h2>
         <button
           class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] underline hover:opacity-70 transition-opacity"
         >
-          + Add New
+          {{ t('account.addNew') }}
         </button>
       </div>
 
       <div v-if="addresses.length === 0" class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">
-        No saved addresses.
+        {{ t('account.noAddresses') }}
       </div>
       <div v-else class="space-y-3">
         <AddressCard

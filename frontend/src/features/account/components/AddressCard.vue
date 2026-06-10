@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
+
+const { t } = useI18n({ messages: accountMessages })
+
 export interface SavedAddress {
   id: string
   label: string
@@ -33,7 +38,7 @@ const emit = defineEmits<{
           <span
             v-if="address.isDefault"
             class="ml-2 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-border-strong)]"
-          >Default</span>
+          >{{ t('account.default') }}</span>
         </p>
         <p class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">{{ address.address1 }}</p>
         <p v-if="address.address2" class="text-[length:var(--text-small)] text-[color:var(--color-border-strong)]">{{ address.address2 }}</p>
@@ -45,16 +50,16 @@ const emit = defineEmits<{
         <button
           class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] underline hover:opacity-70 transition-opacity"
           @click="emit('edit', address)"
-        >Edit</button>
+        >{{ t('account.edit') }}</button>
         <button
           v-if="!address.isDefault"
           class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] underline hover:opacity-70 transition-opacity"
           @click="emit('setDefault', address.id)"
-        >Set default</button>
+        >{{ t('account.setDefault') }}</button>
         <button
           class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] underline text-red-600 hover:opacity-70 transition-opacity"
           @click="emit('delete', address.id)"
-        >Remove</button>
+        >{{ t('account.remove') }}</button>
       </div>
     </div>
   </div>

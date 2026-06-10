@@ -3,6 +3,9 @@ import { ref, onMounted } from 'vue'
 import { fetchProducts } from '@features/products/api'
 import ProductCard from '@features/products/components/ProductCard.vue'
 import type { Product } from '@features/products/types'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const featured = ref<Product[]>([])
 const loading = ref(true)
@@ -27,17 +30,17 @@ onMounted(async () => {
       <div class="flex items-end justify-between mb-3">
         <div>
           <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] opacity-40 mb-2">
-            Featured This Season
+            {{ t('home.featured.eyebrow') }}
           </p>
           <h2 class="text-[length:var(--text-headline)] font-light uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-on-surface)]">
-            Selected Pieces
+            {{ t('home.featured.title') }}
           </h2>
         </div>
         <RouterLink
           to="/shop"
           class="hidden sm:inline-flex items-center gap-2 text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] opacity-50 hover:opacity-100 transition-opacity duration-[var(--duration-normal)] mb-1"
         >
-          View all
+          {{ t('home.featured.viewAll') }}
           <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -68,7 +71,7 @@ onMounted(async () => {
           to="/shop"
           class="inline-flex items-center gap-3 text-[length:var(--text-small)] uppercase tracking-[var(--tracking-label)] border-b border-[color:var(--color-obsidian)] pb-0.5 hover:opacity-60 transition-opacity duration-[var(--duration-normal)]"
         >
-          View Full Collection
+          {{ t('home.featured.viewCollection') }}
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>

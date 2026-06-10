@@ -2,6 +2,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { fetchHeroSlides, type HeroSlide } from '@/features/home/api'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const slides = ref<HeroSlide[]>([])
 const current = ref(0)
@@ -125,7 +128,7 @@ onUnmounted(() => {
     <button
       v-if="slides.length > 1"
       class="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center border border-white/20 hover:border-[color:var(--color-amber-accent)] text-white transition-colors duration-[var(--duration-fast)]"
-      aria-label="Previous"
+      :aria-label="t('home.carousel.previous')"
       @click="prev"
     >
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -135,7 +138,7 @@ onUnmounted(() => {
     <button
       v-if="slides.length > 1"
       class="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 flex items-center justify-center border border-white/20 hover:border-[color:var(--color-amber-accent)] text-white transition-colors duration-[var(--duration-fast)]"
-      aria-label="Next"
+      :aria-label="t('home.carousel.next')"
       @click="next"
     >
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -152,7 +155,7 @@ onUnmounted(() => {
         :class="i === current
           ? 'w-6 h-1 bg-[color:var(--color-amber-accent)]'
           : 'w-1 h-1 bg-white/30 hover:bg-white/60 rounded-full'"
-        :aria-label="`Slide ${i + 1}`"
+        :aria-label="t('home.carousel.goTo', { number: i + 1 })"
         @click="goTo(i)"
       />
     </div>

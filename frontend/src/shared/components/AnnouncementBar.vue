@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const STORAGE_KEY = 'vantier_announcement_dismissed'
 
 const visible = ref(true)
 const activeIndex = ref(0)
 
-const messages = [
-  'Free shipping on orders of 5+ items',
-  'New arrivals — Polo Atelier S/S 2025',
-  'Silent Luxury. Made for LA.',
-]
+const { t } = useI18n()
+const messages = computed(() => [
+  t('shared.announcement.shipping'),
+  t('shared.announcement.arrivals'),
+  t('shared.announcement.luxury'),
+])
 
 let timer: ReturnType<typeof setInterval> | null = null
 
@@ -20,7 +22,7 @@ onMounted(() => {
     return
   }
   timer = setInterval(() => {
-    activeIndex.value = (activeIndex.value + 1) % messages.length
+    activeIndex.value = (activeIndex.value + 1) % messages.value.length
   }, 4000)
 })
 
@@ -55,7 +57,7 @@ function dismiss() {
       <!-- Dismiss -->
       <button
         class="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity duration-[var(--duration-fast)] p-1"
-        aria-label="Dismiss announcement"
+        :aria-label="t('shared.announcement.dismiss')"
         @click="dismiss"
       >
         <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

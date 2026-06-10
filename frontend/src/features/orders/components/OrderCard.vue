@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import type { Order } from '../types'
 import OrderStatusBadge from './OrderStatusBadge.vue'
+import { useI18n } from 'vue-i18n'
+import { accountMessages } from '@shared/i18n/messages/account'
 
 defineProps<{ order: Order }>()
 const emit = defineEmits<{ (e: 'view', order: Order): void }>()
+const { t, locale } = useI18n({ messages: accountMessages })
 
 function formatPrice(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD' }).format(n)
 }
 function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
+  return new Intl.DateTimeFormat(locale.value, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(iso))
 }
 </script>
 
@@ -20,10 +23,10 @@ function formatDate(iso: string) {
   >
     <div class="space-y-1">
       <p class="text-[length:var(--text-small)] font-medium text-[color:var(--color-on-surface)]">
-        Order #{{ order.id.slice(-8).toUpperCase() }}
+        {{ t('orders.orderNumber', { number: order.id.slice(-8).toUpperCase() }) }}
       </p>
       <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
-        {{ formatDate(order.createdAt) }} · {{ order.items.length }} item{{ order.items.length !== 1 ? 's' : '' }}
+        {{ formatDate(order.createdAt) }} · {{ t('orders.itemCount', order.items.length, { count: order.items.length }) }}
       </p>
     </div>
     <div class="flex items-center gap-4">

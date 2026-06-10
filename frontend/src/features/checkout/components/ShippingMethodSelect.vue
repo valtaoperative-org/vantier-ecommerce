@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { fetchShippingRates } from '../api'
 import type { ShippingRate } from '../types'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 const props = defineProps<{ zip: string; country: string; itemCount: number; city?: string; state?: string; district?: string }>()
 const emit = defineEmits<{
@@ -14,6 +16,7 @@ const selected = ref<string | null>(null)
 const loading = ref(true)
 const error = ref(false)
 const noRates = ref(false)
+const { t } = useI18n({ messages: checkoutMessages })
 
 onMounted(async () => {
   await fetchRates()
@@ -45,7 +48,7 @@ function selectRate(rate: ShippingRate) {
 }
 
 function formatPrice(n: number) {
-  return n === 0 ? 'Free' : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  return n === 0 ? t('checkout.summary.free') : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 }
 </script>
 
@@ -58,13 +61,13 @@ function formatPrice(n: number) {
 
     <!-- Error -->
     <div v-else-if="error" class="p-4 border border-red-200 text-[length:var(--text-small)] text-red-700">
-      Could not fetch shipping rates.
-      <button class="underline ml-2" @click="fetchRates">Retry</button>
+      {{ t('checkout.shipping.fetchError') }}
+      <button class="underline ml-2" @click="fetchRates">{{ t('checkout.shipping.retry') }}</button>
     </div>
 
     <!-- No carriers for this destination -->
     <div v-else-if="noRates" class="p-4 border border-amber-200 text-[length:var(--text-small)] text-amber-700">
-      No shipping options available for this address. Please verify your ZIP code or try a different address.
+      {{ t('checkout.shipping.unavailable') }}
     </div>
 
     <!-- Rate cards -->
@@ -90,7 +93,7 @@ function formatPrice(n: number) {
             {{ rate.carrier_name }} {{ rate.service }}
           </p>
           <p class="text-[length:var(--text-micro)] text-[color:var(--color-border-strong)]">
-            {{ rate.estimated_days }}–{{ rate.estimated_days + 2 }} business days
+            {{ t('checkout.shipping.businessDays', { min: rate.estimated_days, max: rate.estimated_days + 2 }) }}
           </p>
         </div>
       </div>

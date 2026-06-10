@@ -15,10 +15,13 @@ import StripePaymentForm from './StripePaymentForm.vue'
 import OrderSummaryPanel from './OrderSummaryPanel.vue'
 import SeoHead from '@shared/components/SeoHead.vue'
 import DiscountCodeInput from '@features/cart/components/DiscountCodeInput.vue'
+import { useI18n } from 'vue-i18n'
+import { checkoutMessages } from '@shared/i18n/messages/checkout'
 
 const router = useRouter()
 const checkout = useCheckoutStore()
 const cart = useCartStore()
+const { t } = useI18n({ messages: checkoutMessages })
 
 const guestEmail = ref('')
 const addressData = ref<AddressData | null>(null)
@@ -62,7 +65,7 @@ async function onShippingContinue() {
           } else if (i.customizationFileUrl && i.customizationFileUrl.startsWith('http')) {
             url = i.customizationFileUrl
           } else {
-            throw new Error(`Por favor vuelve al carrito y vuelve a seleccionar el archivo de personalización para "${i.name}".`)
+            throw new Error(t('checkout.payment.reselectFile', { name: i.name }))
           }
           return {
             variant_id: i.variantId,
@@ -99,7 +102,7 @@ async function onShippingContinue() {
     checkout.orderId = result.order_id
     checkout.step = 'payment'
   } catch (err: unknown) {
-    prepareError.value = err instanceof Error ? err.message : 'Could not prepare payment. Try again.'
+    prepareError.value = err instanceof Error ? err.message : t('checkout.payment.prepareFailed')
   } finally {
     preparingPayment.value = false
   }
@@ -112,8 +115,8 @@ function onPaymentSuccess() {
 
 <template>
   <SeoHead
-    title="Checkout — Vantier"
-    description="Complete your order"
+    :title="t('checkout.seo.title')"
+    :description="t('checkout.seo.description')"
     :robots="{ index: false, follow: false }"
   />
 
@@ -126,7 +129,7 @@ function onPaymentSuccess() {
         <!-- Step 1: Address -->
         <template v-if="checkout.step === 'address'">
           <h2 class="text-[length:var(--text-title)] font-semibold mb-6 text-[color:var(--color-on-surface)]">
-            Contact & Address
+            {{ t('checkout.headings.contact') }}
           </h2>
           <div class="space-y-4">
             <GuestEmailInput v-model="guestEmail" />
@@ -137,7 +140,7 @@ function onPaymentSuccess() {
         <!-- Step 2: Shipping -->
         <template v-else-if="checkout.step === 'shipping'">
           <h2 class="text-[length:var(--text-title)] font-semibold mb-6 text-[color:var(--color-on-surface)]">
-            Shipping Method
+            {{ t('checkout.headings.shipping') }}
           </h2>
           <ShippingMethodSelect
             :zip="addressData?.zip ?? ''"
@@ -161,14 +164,14 @@ function onPaymentSuccess() {
               v-if="preparingPayment"
               class="w-4 h-4 border-2 border-[color:var(--color-ivory)] border-t-transparent rounded-full animate-spin"
             />
-            <span>{{ preparingPayment ? 'Preparing…' : 'Continue to Payment' }}</span>
+            <span>{{ preparingPayment ? t('checkout.shipping.preparing') : t('checkout.shipping.continue') }}</span>
           </button>
         </template>
 
         <!-- Step 3: Payment -->
         <template v-else-if="checkout.step === 'payment'">
           <h2 class="text-[length:var(--text-title)] font-semibold mb-6 text-[color:var(--color-on-surface)]">
-            Payment
+            {{ t('checkout.headings.payment') }}
           </h2>
           <div class="mb-8">
             <DiscountCodeInput />

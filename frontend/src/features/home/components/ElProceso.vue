@@ -1,18 +1,12 @@
 <script setup lang="ts">
-const steps = [
-  {
-    title: 'The Design',
-    body: 'Cada silueta nace de bocetos a mano. Los Ángeles define la estructura anatómica; nuestro legado aporta el carácter intemporal.',
-  },
-  {
-    title: 'The Crafting',
-    body: 'Materiales seleccionados pieza por pieza. Costura estructural reforzada terminada a mano. Sin atajos rápidos en ninguna etapa del ensamblaje.',
-  },
-  {
-    title: 'The Delivery',
-    body: 'Empaque minimalista, despojado de excesos. La prenda llega lista para ser usada, permitiendo que la arquitectura de la pieza hable por sí sola.',
-  },
-]
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
+const steps = computed(() => ['design', 'crafting', 'delivery'].map(key => ({
+  title: t(`home.process.steps.${key}.title`),
+  body: t(`home.process.steps.${key}.body`),
+})))
 </script>
 
 <template>
@@ -25,10 +19,10 @@ const steps = [
       <!-- Section header -->
       <div class="flex flex-col items-center text-center mb-24 fade-in-up">
         <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-display)] text-[color:var(--color-amber-accent)] mb-4 font-medium">
-          Behind the Garment
+          {{ t('home.process.eyebrow') }}
         </p>
         <h2 class="text-[length:var(--text-headline)] md:text-[3.5rem] font-light uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-ivory)] leading-none mb-8">
-          The Atelier Process
+          {{ t('home.process.title') }}
         </h2>
         <div class="w-12 h-px bg-[color:var(--color-amber-accent)]/50" />
       </div>

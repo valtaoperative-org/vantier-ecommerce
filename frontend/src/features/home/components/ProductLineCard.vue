@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 defineProps<{
   name: string
   tagline: string | null
@@ -85,7 +88,7 @@ defineProps<{
             transition: 'opacity 300ms ease, transform 300ms ease',
           }"
         >
-          Shop
+          {{ t('home.collection.shop') }}
           <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>

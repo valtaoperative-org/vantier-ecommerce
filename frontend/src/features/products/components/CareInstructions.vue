@@ -10,12 +10,15 @@ defineProps<{
   lineName: string
   care: CareData
 }>()
+import { useI18n } from 'vue-i18n'
+import messages from '@/shared/i18n/messages/products'
+const { t } = useI18n({ messages })
 
 const CARE_ICONS = {
-  wash:   { symbol: '≋', label: 'Wash'    },
-  bleach: { symbol: '⊘', label: 'Bleach'  },
-  dry:    { symbol: '◯', label: 'Dry'     },
-  colors: { symbol: '◐', label: 'Colors'  },
+  wash:   { symbol: '≋', labelKey: 'products.care.wash' },
+  bleach: { symbol: '⊘', labelKey: 'products.care.bleach' },
+  dry:    { symbol: '◯', labelKey: 'products.care.dry' },
+  colors: { symbol: '◐', labelKey: 'products.care.colors' },
 } as const
 </script>
 
@@ -28,7 +31,7 @@ const CARE_ICONS = {
         {{ lineName }}
       </p>
       <h2 class="text-[length:var(--text-headline)] font-light uppercase tracking-[var(--tracking-headline)] text-[color:var(--color-obsidian)] mb-3">
-        Garment Care
+        {{ t('products.care.title') }}
       </h2>
       <div class="w-7 h-px bg-[color:var(--color-amber-accent)] mb-12" />
 
@@ -45,7 +48,7 @@ const CARE_ICONS = {
             <span class="text-base text-[color:var(--color-obsidian)]/35">{{ icon.symbol }}</span>
           </div>
           <p class="text-[length:var(--text-micro)] uppercase tracking-[var(--tracking-label)] text-[color:var(--color-obsidian)]/55 mb-2">
-            {{ icon.label }}
+            {{ t(icon.labelKey) }}
           </p>
           <p class="text-[length:var(--text-micro)] text-[color:var(--color-obsidian)]/38 leading-relaxed">
             {{ care[key] }}
@@ -57,7 +60,7 @@ const CARE_ICONS = {
       <div class="mt-10 pt-8 border-t border-[color:var(--color-obsidian)]/6 flex items-center gap-4">
         <div class="w-5 h-px bg-[color:var(--color-amber-accent)] flex-shrink-0" />
         <p class="text-[length:var(--text-micro)] text-[color:var(--color-obsidian)]/35 leading-relaxed">
-          A well-cared garment lasts for decades. This is not seasonal fashion — it's an investment in your permanent wardrobe.
+          {{ t('products.care.closing') }}
         </p>
       </div>
     </div>
